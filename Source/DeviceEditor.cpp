@@ -44,15 +44,15 @@ inline double round(double x)
 
 DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
                              DeviceThread* board_)
-    : VisualizerEditor(parentNode, "RHD Controller", 340 + HS_WIDTH), board(board_)
+    : VisualizerEditor(parentNode, "RHD Controller", 330 + HS_WIDTH), board(board_)
 {
     canvas = nullptr;
     noBoardsDetectedLabel = nullptr;
 
-    if (board == nullptr)
+    if (!board->foundInputSource())
     {
         noBoardsDetectedLabel = std::make_unique<Label> ("NoBoardsDetected", "No Recording Controller Detected.");
-        noBoardsDetectedLabel->setBounds (0, 15, 340, 125);
+        noBoardsDetectedLabel->setBounds (0, 15, desiredWidth, 125);
         noBoardsDetectedLabel->setAlwaysOnTop (true);
         noBoardsDetectedLabel->toFront (false);
         noBoardsDetectedLabel->setJustificationType (Justification::centred);
@@ -76,7 +76,7 @@ DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
     // add rescan button
     rescanButton = std::make_unique<UtilityButton> ("RESCAN");
     rescanButton->setRadius(3.0f);
-    rescanButton->setBounds(6 + HS_WIDTH, 108, 65, 18);
+    rescanButton->setBounds(6 + (HS_WIDTH / 2), 108, 65, 18);
     rescanButton->addListener(this);
     rescanButton->setTooltip("Check for connected headstages");
     addAndMakeVisible(rescanButton.get());
@@ -84,12 +84,12 @@ DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
     // add sample rate selection
     sampleRateInterface = std::make_unique<SampleRateInterface> (board, this);
     addAndMakeVisible(sampleRateInterface.get());
-    sampleRateInterface->setBounds(80 + HS_PANEL_WIDTH, 20, 80, 50);
+    sampleRateInterface->setBounds(80 + HS_PANEL_WIDTH, 22, 80, 50);
 
     // add Bandwidth selection
     bandwidthInterface = std::make_unique<BandwidthInterface> (board, this);
     addAndMakeVisible (bandwidthInterface.get());
-    bandwidthInterface->setBounds(80 + HS_PANEL_WIDTH, 55, 80, 50);
+    bandwidthInterface->setBounds(80 + HS_PANEL_WIDTH, 59, 80, 50);
 
     // add AUX channel enable/disable button
     auxButton = std::make_unique<UtilityButton> ("AUX");
@@ -111,8 +111,8 @@ DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
 
     // add audio output config interface
     audioLabel = std::make_unique<Label> ("audio label", "Audio out");
-    audioLabel->setBounds(170 + HS_PANEL_WIDTH, 20, 75, 15);
-    audioLabel->setColour(Label::textColourId, Colours::darkgrey);
+    audioLabel->setBounds(170 + HS_PANEL_WIDTH, 22, 75, 15);
+    audioLabel->setFont (FontOptions ("Inter", "Regular", 10.0f));
     addAndMakeVisible(audioLabel.get());
 
     for (int i = 0; i < 2; i++)
@@ -164,7 +164,7 @@ DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
 
     dacTTLButton = std::make_unique<UtilityButton> ("DAC TTL");
     dacTTLButton->setRadius(3.0f);
-    dacTTLButton->setBounds(260 + HS_PANEL_WIDTH, 25, 60, 18);
+    dacTTLButton->setBounds(260 + HS_PANEL_WIDTH, 30, 60, 18);
     dacTTLButton->addListener(this);
     dacTTLButton->setClickingTogglesState(true);
     dacTTLButton->setTooltip("Toggle DAC Threshold TTL Output");
@@ -172,11 +172,11 @@ DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
 
     dacHPFlabel = std::make_unique<Label> ("DAC HPF", "DAC HPF");
     dacHPFlabel->setFont (FontOptions ("Inter", "Regular", 10.0f));
-    dacHPFlabel->setBounds(255 + HS_PANEL_WIDTH, 40, 60, 20);
+    dacHPFlabel->setBounds(255 + HS_PANEL_WIDTH, 50, 60, 15);
     addAndMakeVisible (dacHPFlabel.get());
 
     dacHPFcombo = std::make_unique<ComboBox> ("dacHPFCombo");
-    dacHPFcombo->setBounds(260 + HS_PANEL_WIDTH, 55, 60, 18);
+    dacHPFcombo->setBounds(260 + HS_PANEL_WIDTH, 65, 60, 18);
     dacHPFcombo->addListener(this);
     dacHPFcombo->addItem("OFF", 1);
     int HPFvalues[10] = {50, 100, 200, 300, 400, 500, 600, 700, 800, 900};
@@ -189,11 +189,11 @@ DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
 
     ttlSettleLabel = std::make_unique<Label> ("TTL Settle", "TTL Settle");
     ttlSettleLabel->setFont (FontOptions ("Inter", "Regular", 10.0f));
-    ttlSettleLabel->setBounds(255 + HS_PANEL_WIDTH, 70, 70, 20);
+    ttlSettleLabel->setBounds(255 + HS_PANEL_WIDTH, 85, 70, 15);
     addAndMakeVisible(ttlSettleLabel.get());
 
     ttlSettleCombo = std::make_unique<ComboBox> ("FastSettleComboBox");
-    ttlSettleCombo->setBounds(260 + HS_PANEL_WIDTH, 85, 60, 18);
+    ttlSettleCombo->setBounds(260 + HS_PANEL_WIDTH, 100, 60, 18);
     ttlSettleCombo->addListener(this);
     ttlSettleCombo->addItem("-",1);
     for (int k=0; k<8; k++)
@@ -313,6 +313,11 @@ void DeviceEditor::buttonClicked(Button* button)
     }
     else if (button == electrodeButtons[0] || button == electrodeButtons[1])
     {
+        int numChans = board->getNumDataOutputs(ContinuousChannel::ELECTRODE);
+
+        if (numChans == 0)
+            return;
+
         std::vector<bool> channelStates;
 
         if (button == electrodeButtons[0])
@@ -320,7 +325,7 @@ void DeviceEditor::buttonClicked(Button* button)
         else
             activeAudioChannel = RIGHT;
 
-        for (int i = 0; i < board->getNumDataOutputs(ContinuousChannel::ELECTRODE); i++)
+        for (int i = 0; i < numChans; i++)
         {
             if (electrodeButtons[int(activeAudioChannel)]->getChannelNum() -1 == i)
                 channelStates.push_back(true);
@@ -406,6 +411,9 @@ void DeviceEditor::stopAcquisition()
 
 void DeviceEditor::saveVisualizerEditorParameters(XmlElement* xml)
 {
+    if (board->foundInputSource() == false)
+        return;
+
     xml->setAttribute("SampleRate", sampleRateInterface->getSelectedId());
     xml->setAttribute("SampleRateString", sampleRateInterface->getText());
     xml->setAttribute("LowCut", bandwidthInterface->getLowerBandwidth());
@@ -446,6 +454,8 @@ void DeviceEditor::saveVisualizerEditorParameters(XmlElement* xml)
 
 void DeviceEditor::loadVisualizerEditorParameters(XmlElement* xml)
 {
+    if (board->foundInputSource() == false)
+        return;
 
     sampleRateInterface->setSelectedId(xml->getIntAttribute("SampleRate"));
     bandwidthInterface->setLowerBandwidth(xml->getDoubleAttribute("LowCut"));
@@ -528,13 +538,13 @@ BandwidthInterface::BandwidthInterface(DeviceThread* board_,
     upperBandwidthSelection = std::make_unique<Label> ("UpperBandwidth", lastHighCutString); // this is currently set in DeviceThread, the cleaner way would be to set it here again
     upperBandwidthSelection->setEditable(true, false, false);
     upperBandwidthSelection->addListener(this);
-    upperBandwidthSelection->setBounds(30, 25, 60, 20);
+    upperBandwidthSelection->setBounds(25, 25, 50, 20);
     addAndMakeVisible(upperBandwidthSelection.get());
 
     lowerBandwidthSelection = std::make_unique<Label> ("LowerBandwidth", lastLowCutString);
     lowerBandwidthSelection->setEditable(true, false, false);
     lowerBandwidthSelection->addListener(this);
-    lowerBandwidthSelection->setBounds(30, 10, 60, 20);
+    lowerBandwidthSelection->setBounds(25, 10, 50, 20);
 
     addAndMakeVisible(lowerBandwidthSelection.get());
 }
@@ -675,9 +685,9 @@ SampleRateInterface::SampleRateInterface(DeviceThread* board_,
 
     rateSelection = std::make_unique<ComboBox> ("Sample Rate");
     rateSelection->addItemList(sampleRateOptions, 1);
-    rateSelection->setSelectedId(17, dontSendNotification);
+    rateSelection->setSelectedId(sampleRateOptions.size(), dontSendNotification);
     rateSelection->addListener(this);
-    rateSelection->setBounds(0, 12, 80, 20);
+    rateSelection->setBounds(0, 14, 80, 20);
     addAndMakeVisible(rateSelection.get());
 }
 
@@ -933,8 +943,7 @@ AudioInterface::AudioInterface(DeviceThread* board_,
     noiseSlicerLevelSelection = std::make_unique<Label> ("Noise Slicer", lastNoiseSlicerString); // this is currently set in DeviceThread, the cleaner would be to set it here again
     noiseSlicerLevelSelection->setEditable(true, false, false);
     noiseSlicerLevelSelection->addListener(this);
-    noiseSlicerLevelSelection->setBounds(45, 6, 35, 20);
-    noiseSlicerLevelSelection->setColour(Label::textColourId, Colours::darkgrey);
+    noiseSlicerLevelSelection->setBounds(35, 0, 35, 20);
     addAndMakeVisible(noiseSlicerLevelSelection.get());
 
 
@@ -1020,8 +1029,7 @@ ClockDivideInterface::ClockDivideInterface(DeviceThread* board_,
     divideRatioSelection = std::make_unique<Label> ("Clock Divider", lastDivideRatioString);
     divideRatioSelection->setEditable(true, false, false);
     divideRatioSelection->addListener(this);
-    divideRatioSelection->setBounds(45, 6, 35, 20);
-    divideRatioSelection->setColour(Label::textColourId, Colours::darkgrey);
+    divideRatioSelection->setBounds(35, 0, 35, 20);
     addAndMakeVisible(divideRatioSelection.get());
 }
 
@@ -1077,7 +1085,6 @@ DSPInterface::DSPInterface(DeviceThread* board_,
     dspOffsetSelection->setEditable(true, false, false);
     dspOffsetSelection->addListener(this);
     dspOffsetSelection->setBounds(0, 0, 35, 20);
-    dspOffsetSelection->setColour(Label::textColourId, Colours::darkgrey);
     addAndMakeVisible(dspOffsetSelection.get());
 }
 
@@ -1098,8 +1105,8 @@ void DSPInterface::labelTextChanged(Label* label)
 
             actualDspCutoffFreq = board->setDspCutoffFreq(requestedValue);
 
-            LOGD("Setting DSP Cutoff Freq to ", requestedValue);
-            LOGD("Actual DSP Cutoff Freq:  ", actualDspCutoffFreq);
+            LOGC("Setting DSP Cutoff Freq to ", requestedValue);
+            LOGC("Actual DSP Cutoff Freq:  ", actualDspCutoffFreq);
             label->setText(String(round(actualDspCutoffFreq*10.f)/10.f), dontSendNotification);
         }
     }
