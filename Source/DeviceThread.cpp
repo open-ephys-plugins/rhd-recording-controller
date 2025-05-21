@@ -368,7 +368,7 @@ void DeviceThread::initializeBoard()
     }
 
     //Instantiate usb thread
-    usbThread = std::make_unique<USBThread> (evalBoard);
+    usbThread = std::make_unique<USBThread> (evalBoard.get());
 
     // Initialize the board
     LOGD("Initializing RHD2000 board.");
