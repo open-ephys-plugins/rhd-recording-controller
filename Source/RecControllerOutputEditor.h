@@ -21,35 +21,35 @@
 
 */
 
-#ifndef __ACQBOARDOUTPUTEDITOR_H_28EB4CC9__
-#define __ACQBOARDOUTPUTEDITOR_H_28EB4CC9__
+#ifndef __RECCONTROLLEROUTPUTEDITOR_H_28EB4CC9__
+#define __RECCONTROLLEROUTPUTEDITOR_H_28EB4CC9__
 
 
 #include <EditorHeaders.h>
 
-namespace AcqBoardOutputNamespace {
+namespace RecControllerOutputNamespace {
 
     /**
 
-      User interface for the AcqBoardOutput processor.
+      User interface for the RecControllerOutput processor.
 
-      @see AcqBoardOutput
+      @see RecControllerOutput
 
     */
 
-    class AcqBoardOutput;
+    class RecControllerOutput;
 
-    class AcqBoardOutputEditor : public GenericEditor,
+    class RecControllerOutputEditor : public GenericEditor,
                                  public Button::Listener
 
     {
     public:
 
         /** Constructor*/
-        AcqBoardOutputEditor(GenericProcessor* parentNode);
+        RecControllerOutputEditor(GenericProcessor* parentNode);
 
         /** Destructor*/
-        ~AcqBoardOutputEditor() { }
+        ~RecControllerOutputEditor() { }
 
         /** Responds to trigger button press*/
         void buttonClicked(Button* button);
@@ -58,13 +58,13 @@ namespace AcqBoardOutputNamespace {
 
         std::unique_ptr<UtilityButton> triggerButton;
 
-        AcqBoardOutput* board;
+        RecControllerOutput* board;
 
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AcqBoardOutputEditor);
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RecControllerOutputEditor);
 
     };
 
 
 }
 
-#endif  // __AcqBoardOutputEDITOR_H_28EB4CC9__
+#endif  // __RECCONTROLLEROUTPUTEDITOR_H_28EB4CC9__

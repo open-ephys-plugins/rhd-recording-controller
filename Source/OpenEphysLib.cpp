@@ -23,13 +23,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <PluginInfo.h>
 
-#include "AcquisitionBoard.h"
-#include "IntanUSBInterface.h"
-#include "AcqBoardOutput.h"
 #include "IntanRecordController.h"
+#include "RecControllerOutput.h"
 
 #include <string>
-#ifdef WIN32
+#ifdef _WIN32
 #include <Windows.h>
 #define EXPORT __declspec(dllexport)
 #else
@@ -60,7 +58,7 @@ extern "C" EXPORT int getPluginInfo(int index, Plugin::PluginInfo* info)
 		info->type = Plugin::Type::PROCESSOR;
 		info->processor.name = "Rec Controller Output";
 		info->processor.type = Plugin::Processor::SINK;
-		info->processor.creator = &createProcessor<AcqBoardOutputNamespace::AcqBoardOutput>;
+		info->processor.creator = &createProcessor<RecControllerOutputNamespace::RecControllerOutput>;
 		break;
 	default:
 		return -1;

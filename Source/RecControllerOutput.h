@@ -21,13 +21,13 @@
 
 */
 
-#ifndef __ACQBOARDOUTPUT_H_F7BDA585__
-#define __ACQBOARDOUTPUT_H_F7BDA585__
+#ifndef __RECCONTROLLEROUTPUT_H_F7BDA585__
+#define __RECCONTROLLEROUTPUT_H_F7BDA585__
 
 #include <ProcessorHeaders.h>
 
 
-namespace AcqBoardOutputNamespace {
+namespace RecControllerOutputNamespace {
 
     /**
         Controls the outputs of the Open Ephys Acquisition Board
@@ -36,15 +36,18 @@ namespace AcqBoardOutputNamespace {
 
         @see GenericProcessor
      */
-    class AcqBoardOutput : public GenericProcessor
+    class RecControllerOutput : public GenericProcessor
     {
     public:
 
         /** Constructor*/
-        AcqBoardOutput();
+        RecControllerOutput();
 
         /** Destructor*/
-        ~AcqBoardOutput() { }
+        ~RecControllerOutput() { }
+
+        /** Registers the parameters*/
+        void registerParameters() override;
 
         /** Searches for events and triggers the Arduino output when appropriate. */
         void process(AudioBuffer<float>& buffer) override;
@@ -52,11 +55,11 @@ namespace AcqBoardOutputNamespace {
         /** Convenient interface for responding to incoming events. */
         void handleTTLEvent(TTLEventPtr event) override;
 
-        /** Creates the AcqBoardOutputEditor. */
+        /** Creates the RecControllerOutputEditor. */
         AudioProcessorEditor* createEditor() override;
 
         /** Manually triggers output when editor button is clicked */
-        void triggerOutput(uint16 streamId);
+        void triggerOutput();
 
         /** Responds to change in parameter trigger value */
         void parameterValueChanged(Parameter*);
@@ -65,10 +68,10 @@ namespace AcqBoardOutputNamespace {
 
         bool gateIsOpen;
 
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AcqBoardOutput);
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RecControllerOutput);
     };
 
 }
 
 
-#endif  // __AcqBoardOutput_H_F7BDA585__
+#endif  // __RECCONTROLLEROUTPUT_H_F7BDA585__
