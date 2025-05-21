@@ -32,23 +32,23 @@ namespace RecControllerOutputNamespace {
         : GenericEditor(parentNode)
 
     {
-        desiredWidth = 190;
+        desiredWidth = 220;
 
         board = (RecControllerOutput*) parentNode;
 
-        addTtlLineParameterEditor (Parameter::STREAM_SCOPE, "ttl_out", 10, 25);
-        addTtlLineParameterEditor (Parameter::STREAM_SCOPE, "trigger_line", 10, 65);
-        addTtlLineParameterEditor (Parameter::STREAM_SCOPE, "gate_line", 100, 65);
-        addBoundedValueParameterEditor (Parameter::PROCESSOR_SCOPE, "event_duration", 100, 25);
+        addTtlLineParameterEditor (Parameter::STREAM_SCOPE, "ttl_out", 15, 25);
+        addTtlLineParameterEditor (Parameter::STREAM_SCOPE, "trigger_line", 15, 65);
+        addTtlLineParameterEditor (Parameter::STREAM_SCOPE, "gate_line", 120, 65);
+        addBoundedValueParameterEditor (Parameter::PROCESSOR_SCOPE, "event_duration", 120, 25);
 
         for (auto ed : parameterEditors)
         {
             ed->setLayout (ParameterEditor::Layout::nameOnTop);
-            ed->setSize (80, 36);
+            ed->setSize (85, 36);
         }
 
         triggerButton = std::make_unique<UtilityButton> ("Trigger");
-        triggerButton->setBounds (55, 105, 80, 20);
+        triggerButton->setBounds (70, 105, 80, 20);
         triggerButton->setFont (FontOptions(12.0f));
         triggerButton->addListener (this);
         addAndMakeVisible (triggerButton.get());
