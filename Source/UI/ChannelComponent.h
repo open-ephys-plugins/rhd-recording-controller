@@ -31,42 +31,31 @@ namespace RhythmNode
 
 	class ChannelList;
 
-	class ChannelComponent : public Component, 
-						     public Button::Listener, 
-							 public ComboBox::Listener, 
-							 public Label::Listener
+	class ChannelComponent : public Component
 	{
 	public:
 		
 		/** Constructor */
-		ChannelComponent(ChannelList* cl, 
-						 int ch, 
-						 int gainIndex, 
-						 String name, 
-						 Array<float> gains, 
-						 ContinuousChannel::Type type);
-		
+		ChannelComponent (ChannelList* cl,
+							int ch,
+							int gainIndex,
+							String name,
+							Array<float> gains,
+							ContinuousChannel::Type type);
+
 		/** Destructor */
-		~ChannelComponent() { }
+		~ChannelComponent() {}
 
-		Colour getDefaultColor(int ID);
-		void setImpedanceValues(float mag, float phase);
-		void disableEdit();
-		void enableEdit();
+		/** Called when look and feel is updated*/
+		void lookAndFeelChanged() override;
 
-		void setEnabledState(bool);
-		bool getEnabledState()
-		{
-			return isEnabled;
-		}
-		void buttonClicked(Button* btn);
-		void setUserDefinedData(int d);
-		int getUserDefinedData();
-		void comboBoxChanged(ComboBox* comboBox);
-		void labelTextChanged(Label* lbl);
+		/** Updates impedance values for this channel */
+		void setImpedanceValues (float mag, float phase);
 
-		void resized();
+		/** Sets layout */
+		void resized() override;
 
+		/** Holds channel type */
 		const ContinuousChannel::Type type;
 
 	private:
@@ -74,14 +63,12 @@ namespace RhythmNode
 		Array<float> gains;
 		ChannelList* channelList;
 
-		ScopedPointer<Label> staticLabel, editName, impedance;
-		ScopedPointer<ComboBox> rangeComboBox;
+		std::unique_ptr<Label> staticLabel, nameLabel, impedanceLabel;
 
 		int channel;
 		String name;
 		int gainIndex;
 		int userDefinedData;
-		Font font;
 		bool isEnabled;
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChannelComponent);

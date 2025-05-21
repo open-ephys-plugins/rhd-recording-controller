@@ -43,6 +43,7 @@ ChannelCanvas::ChannelCanvas(DeviceThread* board_,
 
     channelViewport->setViewedComponent(channelList.get(), false);
     channelViewport->setScrollBarsShown(true, true);
+    channelViewport->setScrollBarThickness (10);
     addAndMakeVisible(channelViewport.get());
 
     update();
@@ -54,7 +55,7 @@ ChannelCanvas::ChannelCanvas(DeviceThread* board_,
 
 void ChannelCanvas::paint(Graphics& g)
 {
-    g.fillAll(Colours::grey);
+    g.fillAll (findColour (ThemeColours::componentBackground));
 
 }
 
@@ -68,10 +69,16 @@ void ChannelCanvas::refreshState()
     resized();
 }
 
-void ChannelCanvas::update()
+void ChannelCanvas::updateSettings()
 {
-
     channelList->update();
+    resized();
+}
+
+void ChannelCanvas::updateAsync()
+{
+    Timer::callAfterDelay (5, [this]
+                           { updateSettings(); });
 }
 
 void ChannelCanvas::beginAnimation()

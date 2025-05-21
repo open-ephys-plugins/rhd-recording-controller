@@ -44,16 +44,22 @@ inline double round(double x)
 
 DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
                              DeviceThread* board_)
-    : VisualizerEditor(parentNode, "tabText", 340 + HS_WIDTH), board(board_)
+    : VisualizerEditor(parentNode, "RHD Controller", 340 + HS_WIDTH), board(board_)
 {
     canvas = nullptr;
+    noBoardsDetectedLabel = nullptr;
 
-    if (board->boardType == ACQUISITION_BOARD)
-        tabText = "Acq Board";
-    else if (board->boardType == INTAN_RHD_USB)
-        tabText = "Intan USB";
-    else if (board->boardType == RHD_RECORDING_CONTROLLER)
-        tabText = "RHD Controller";
+    if (board == nullptr)
+    {
+        noBoardsDetectedLabel = std::make_unique<Label> ("NoBoardsDetected", "No Recording Controller Detected.");
+        noBoardsDetectedLabel->setBounds (0, 15, 340, 125);
+        noBoardsDetectedLabel->setAlwaysOnTop (true);
+        noBoardsDetectedLabel->toFront (false);
+        noBoardsDetectedLabel->setJustificationType (Justification::centred);
+        addAndMakeVisible (noBoardsDetectedLabel.get());
+
+        return;
+    }
 
     measureWhenRecording = false;
     saveImpedances = false;
@@ -68,47 +74,46 @@ DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
     }
 
     // add rescan button
-    rescanButton = new UtilityButton("RESCAN", Font("Small Text", 13, Font::plain));
+    rescanButton = std::make_unique<UtilityButton> ("RESCAN");
     rescanButton->setRadius(3.0f);
     rescanButton->setBounds(6 + HS_WIDTH, 108, 65, 18);
     rescanButton->addListener(this);
     rescanButton->setTooltip("Check for connected headstages");
-    addAndMakeVisible(rescanButton);
+    addAndMakeVisible(rescanButton.get());
 
     // add sample rate selection
-    sampleRateInterface = new SampleRateInterface(board, this);
-    addAndMakeVisible(sampleRateInterface);
+    sampleRateInterface = std::make_unique<SampleRateInterface> (board, this);
+    addAndMakeVisible(sampleRateInterface.get());
     sampleRateInterface->setBounds(80 + HS_PANEL_WIDTH, 20, 80, 50);
 
     // add Bandwidth selection
-    bandwidthInterface = new BandwidthInterface(board, this);
-    addAndMakeVisible(bandwidthInterface);
+    bandwidthInterface = std::make_unique<BandwidthInterface> (board, this);
+    addAndMakeVisible (bandwidthInterface.get());
     bandwidthInterface->setBounds(80 + HS_PANEL_WIDTH, 55, 80, 50);
 
     // add AUX channel enable/disable button
-    auxButton = new UtilityButton("AUX", Font("Small Text", 13, Font::plain));
+    auxButton = std::make_unique<UtilityButton> ("AUX");
     auxButton->setRadius(3.0f);
     auxButton->setBounds(80 + HS_PANEL_WIDTH, 108, 32, 18);
     auxButton->addListener(this);
     auxButton->setClickingTogglesState(true);
     auxButton->setTooltip("Toggle AUX channels (3 per headstage)");
-    addAndMakeVisible(auxButton);
+    addAndMakeVisible(auxButton.get());
 
     // add ADC channel enable/disable button
-    adcButton = new UtilityButton("ADC", Font("Small Text", 13, Font::plain));
+    adcButton = std::make_unique<UtilityButton> ("ADC");
     adcButton->setRadius(3.0f);
     adcButton->setBounds(80+32+1 + HS_PANEL_WIDTH, 108, 32, 18);
     adcButton->addListener(this);
     adcButton->setClickingTogglesState(true);
     adcButton->setTooltip("Toggle 8 external HDMI ADC channels");
-    addAndMakeVisible(adcButton);
+    addAndMakeVisible(adcButton.get());
 
     // add audio output config interface
-    audioLabel = new Label("audio label", "Audio out");
+    audioLabel = std::make_unique<Label> ("audio label", "Audio out");
     audioLabel->setBounds(170 + HS_PANEL_WIDTH, 20, 75, 15);
-    audioLabel->setFont(Font("Small Text", 10, Font::plain));
     audioLabel->setColour(Label::textColourId, Colours::darkgrey);
-    addAndMakeVisible(audioLabel);
+    addAndMakeVisible(audioLabel.get());
 
     for (int i = 0; i < 2; i++)
     {
@@ -134,44 +139,43 @@ DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
     }
 
     // add HW audio parameter selection
-    audioInterface = new AudioInterface(board, this);
-    addAndMakeVisible(audioInterface);
+    audioInterface = std::make_unique<AudioInterface> (board, this);
+    addAndMakeVisible (audioInterface.get());
     audioInterface->setBounds(174 + HS_PANEL_WIDTH, 55, 70, 50);
 
-    clockInterface = new ClockDivideInterface(board, this);
-    addAndMakeVisible(clockInterface);
+    clockInterface = std::make_unique<ClockDivideInterface> (board, this);
+    addAndMakeVisible (clockInterface.get());
     clockInterface->setBounds(174 + HS_PANEL_WIDTH, 80, 70, 50);
 
     // add DSP Offset Button
-    dspoffsetButton = new UtilityButton("DSP:", Font("Small Text", 13, Font::plain));
+    dspoffsetButton = std::make_unique<UtilityButton> ("DSP:");
     dspoffsetButton->setRadius(3.0f); // sets the radius of the button's corners
     dspoffsetButton->setBounds(174 + HS_PANEL_WIDTH, 108, 32, 18); // sets the x position, y position, width, and height of the button
     dspoffsetButton->addListener(this);
     dspoffsetButton->setClickingTogglesState(true); // makes the button toggle its state when clicked
     dspoffsetButton->setTooltip("Toggle DSP offset removal");
-    addAndMakeVisible(dspoffsetButton); // makes the button a child component of the editor and makes it visible
+    addAndMakeVisible (dspoffsetButton.get()); // makes the button a child component of the editor and makes it visible
     dspoffsetButton->setToggleState(true, dontSendNotification);
 
     // add DSP Frequency Selection field
-    dspInterface = new DSPInterface(board, this);
-    addAndMakeVisible(dspInterface);
+    dspInterface = std::make_unique<DSPInterface> (board, this);
+    addAndMakeVisible (dspInterface.get());
     dspInterface->setBounds(174+32 + HS_PANEL_WIDTH, 108, 40, 50);
 
-    dacTTLButton = new UtilityButton("DAC TTL", Font("Small Text", 13, Font::plain));
+    dacTTLButton = std::make_unique<UtilityButton> ("DAC TTL");
     dacTTLButton->setRadius(3.0f);
     dacTTLButton->setBounds(260 + HS_PANEL_WIDTH, 25, 60, 18);
     dacTTLButton->addListener(this);
     dacTTLButton->setClickingTogglesState(true);
     dacTTLButton->setTooltip("Toggle DAC Threshold TTL Output");
-    addAndMakeVisible(dacTTLButton);
+    addAndMakeVisible(dacTTLButton.get());
 
-    dacHPFlabel = new Label("DAC HPF", "DAC HPF");
-    dacHPFlabel->setFont(Font("Small Text", 10, Font::plain));
+    dacHPFlabel = std::make_unique<Label> ("DAC HPF", "DAC HPF");
+    dacHPFlabel->setFont (FontOptions ("Inter", "Regular", 10.0f));
     dacHPFlabel->setBounds(255 + HS_PANEL_WIDTH, 40, 60, 20);
-    dacHPFlabel->setColour(Label::textColourId, Colours::darkgrey);
-    addAndMakeVisible(dacHPFlabel);
+    addAndMakeVisible (dacHPFlabel.get());
 
-    dacHPFcombo = new ComboBox("dacHPFCombo");
+    dacHPFcombo = std::make_unique<ComboBox> ("dacHPFCombo");
     dacHPFcombo->setBounds(260 + HS_PANEL_WIDTH, 55, 60, 18);
     dacHPFcombo->addListener(this);
     dacHPFcombo->addItem("OFF", 1);
@@ -181,15 +185,14 @@ DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
         dacHPFcombo->addItem(String(HPFvalues[k])+" Hz", 2+k);
     }
     dacHPFcombo->setSelectedId(1, sendNotification);
-    addAndMakeVisible(dacHPFcombo);
+    addAndMakeVisible(dacHPFcombo.get());
 
-    ttlSettleLabel = new Label("TTL Settle", "TTL Settle");
-    ttlSettleLabel->setFont(Font("Small Text", 10, Font::plain));
+    ttlSettleLabel = std::make_unique<Label> ("TTL Settle", "TTL Settle");
+    ttlSettleLabel->setFont (FontOptions ("Inter", "Regular", 10.0f));
     ttlSettleLabel->setBounds(255 + HS_PANEL_WIDTH, 70, 70, 20);
-    ttlSettleLabel->setColour(Label::textColourId, Colours::darkgrey);
-    addAndMakeVisible(ttlSettleLabel);
+    addAndMakeVisible(ttlSettleLabel.get());
 
-    ttlSettleCombo = new ComboBox("FastSettleComboBox");
+    ttlSettleCombo = std::make_unique<ComboBox> ("FastSettleComboBox");
     ttlSettleCombo->setBounds(260 + HS_PANEL_WIDTH, 85, 60, 18);
     ttlSettleCombo->addListener(this);
     ttlSettleCombo->addItem("-",1);
@@ -198,28 +201,25 @@ DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
         ttlSettleCombo->addItem("TTL"+String(1+k), 2+k);
     }
     ttlSettleCombo->setSelectedId(1, sendNotification);
-    addAndMakeVisible(ttlSettleCombo);
-
-    ledButton = new UtilityButton("LED", Font("Small Text", 13, Font::plain));
-    ledButton->setRadius(3.0f);
-    ledButton->setBounds(288 + HS_PANEL_WIDTH, 108, 32, 18);
-    ledButton->addListener(this);
-    ledButton->setClickingTogglesState(true);
-    ledButton->setTooltip("Toggle board LEDs");
-    ledButton->setToggleState(true, dontSendNotification);
-
-    if (board->boardType == ACQUISITION_BOARD)
-        addAndMakeVisible(ledButton);
-
+    addAndMakeVisible(ttlSettleCombo.get());
 }
 
 
 void DeviceEditor::measureImpedance()
 {
 
-    board->runImpedanceTest();
+    if (! acquisitionIsActive)
+    {
+        board->runImpedanceTest();
+    }
+}
 
-    CoreServices::updateSignalChain(this);
+void DeviceEditor::impedanceMeasurementFinished()
+{
+    if (canvas != nullptr)
+    {
+        canvas->updateAsync();
+    }
 }
 
 void DeviceEditor::saveImpedance(File& file)
@@ -240,7 +240,7 @@ void DeviceEditor::updateSettings()
 
 void DeviceEditor::comboBoxChanged(ComboBox* comboBox)
 {
-    if (comboBox == ttlSettleCombo)
+    if (comboBox == ttlSettleCombo.get())
     {
         int selectedChannel = ttlSettleCombo->getSelectedId();
         if (selectedChannel == 1)
@@ -252,7 +252,7 @@ void DeviceEditor::comboBoxChanged(ComboBox* comboBox)
             board->setFastTTLSettle(true,selectedChannel-2);
         }
     }
-    else if (comboBox == dacHPFcombo)
+    else if (comboBox == dacHPFcombo.get())
     {
         int selection = dacHPFcombo->getSelectedId();
         if (selection == 1)
@@ -294,10 +294,14 @@ void DeviceEditor::channelStateChanged(Array<int> newChannels)
 
 }
 
+int DeviceEditor::getChannelCount()
+{
+    return board->getNumChannels();
+}
 
 void DeviceEditor::buttonClicked(Button* button)
 {
-    if (button == rescanButton && !acquisitionIsActive)
+    if (button == rescanButton.get() && !acquisitionIsActive)
     {
         board->scanPorts();
 
@@ -324,7 +328,7 @@ void DeviceEditor::buttonClicked(Button* button)
                 channelStates.push_back(false);
         }
 
-        auto* channelSelector = new PopupChannelSelector(this, channelStates);
+        auto* channelSelector = new PopupChannelSelector(this, this, channelStates);
 
         channelSelector->setChannelButtonColour(Colour(0, 174, 239));
         channelSelector->setMaximumSelectableChannels(1);
@@ -334,31 +338,27 @@ void DeviceEditor::buttonClicked(Button* button)
                 button->getScreenBounds(),
                 nullptr);
     }
-    else if (button == auxButton && !acquisitionIsActive)
+    else if (button == auxButton.get() && !acquisitionIsActive)
     {
         board->enableAuxs(button->getToggleState());
         LOGD("AUX Button toggled");
         CoreServices::updateSignalChain(this);
     }
-    else if (button == adcButton && !acquisitionIsActive)
+    else if (button == adcButton.get() && !acquisitionIsActive)
     {
         board->enableAdcs(button->getToggleState());
         LOGD("ADC Button toggled");
         CoreServices::updateSignalChain(this);
 
     }
-    else if (button == dacTTLButton)
+    else if (button == dacTTLButton.get())
     {
         board->setTTLoutputMode(dacTTLButton->getToggleState());
     }
-    else if (button == dspoffsetButton && !acquisitionIsActive)
+    else if (button == dspoffsetButton.get() && !acquisitionIsActive)
     {
         LOGD("DSP offset ", button->getToggleState());
         board->setDSPOffset(button->getToggleState());
-    }
-    else if (button == ledButton)
-    {
-        board->enableBoardLeds(button->getToggleState());
     }
 
 }
@@ -370,6 +370,16 @@ void DeviceEditor::startAcquisition()
     adcButton->setEnabledState(false);
     dspoffsetButton-> setEnabledState(false);
 
+    for (auto headstageOptions : headstageOptionsInterfaces)
+    {
+		headstageOptions->setEnabled (false);
+	}
+
+    if (canvas != nullptr)
+    {
+		canvas->beginAnimation();
+	}
+
     acquisitionIsActive = true;
 }
 
@@ -380,6 +390,16 @@ void DeviceEditor::stopAcquisition()
     auxButton->setEnabledState(true);
     adcButton->setEnabledState(true);
     dspoffsetButton-> setEnabledState(true);
+
+    for (auto headstageOptions : headstageOptionsInterfaces)
+    {
+        headstageOptions->setEnabled (true);
+    }
+
+    if (canvas != nullptr)
+    {
+		canvas->endAnimation();
+	}
 
     acquisitionIsActive = false;
 }
@@ -402,7 +422,6 @@ void DeviceEditor::saveVisualizerEditorParameters(XmlElement* xml)
     xml->setAttribute("DSPCutoffFreq", dspInterface->getDspCutoffFreq());
     xml->setAttribute("save_impedance_measurements",saveImpedances);
     xml->setAttribute("auto_measure_impedances",measureWhenRecording);
-    xml->setAttribute("LEDs", ledButton->getToggleState());
     xml->setAttribute("ClockDivideRatio", clockInterface->getClockDivideRatio());
 
 	// loop through all headstage options interfaces and save their parameters
@@ -442,7 +461,6 @@ void DeviceEditor::loadVisualizerEditorParameters(XmlElement* xml)
     dspInterface->setDspCutoffFreq(xml->getDoubleAttribute("DSPCutoffFreq"));
     saveImpedances = xml->getBoolAttribute("save_impedance_measurements");
     measureWhenRecording = xml->getBoolAttribute("auto_measure_impedances");
-    ledButton->setToggleState(xml->getBoolAttribute("LEDs", true),sendNotification);
     clockInterface->setClockDivideRatio(xml->getIntAttribute("ClockDivideRatio"));
 
     int AudioOutputL = xml->getIntAttribute("AudioOutputL", -1);
@@ -507,20 +525,18 @@ BandwidthInterface::BandwidthInterface(DeviceThread* board_,
     actualUpperBandwidth = 7500.0f;
     actualLowerBandwidth = 1.0f;
 
-    upperBandwidthSelection = new Label("UpperBandwidth", lastHighCutString); // this is currently set in DeviceThread, the cleaner way would be to set it here again
+    upperBandwidthSelection = std::make_unique<Label> ("UpperBandwidth", lastHighCutString); // this is currently set in DeviceThread, the cleaner way would be to set it here again
     upperBandwidthSelection->setEditable(true, false, false);
     upperBandwidthSelection->addListener(this);
     upperBandwidthSelection->setBounds(30, 25, 60, 20);
-    upperBandwidthSelection->setColour(Label::textColourId, Colours::darkgrey);
-    addAndMakeVisible(upperBandwidthSelection);
+    addAndMakeVisible(upperBandwidthSelection.get());
 
-    lowerBandwidthSelection = new Label("LowerBandwidth", lastLowCutString);
+    lowerBandwidthSelection = std::make_unique<Label> ("LowerBandwidth", lastLowCutString);
     lowerBandwidthSelection->setEditable(true, false, false);
     lowerBandwidthSelection->addListener(this);
     lowerBandwidthSelection->setBounds(30, 10, 60, 20);
-    lowerBandwidthSelection->setColour(Label::textColourId, Colours::darkgrey);
 
-    addAndMakeVisible(lowerBandwidthSelection);
+    addAndMakeVisible(lowerBandwidthSelection.get());
 }
 
 BandwidthInterface::~BandwidthInterface()
@@ -534,7 +550,7 @@ void BandwidthInterface::labelTextChanged(Label* label)
 
     if (!(editor->acquisitionIsActive) && board->foundInputSource())
     {
-        if (label == upperBandwidthSelection)
+        if (label == upperBandwidthSelection.get())
         {
 
             Value val = label->getTextValue();
@@ -582,7 +598,7 @@ void BandwidthInterface::labelTextChanged(Label* label)
     else if (editor->acquisitionIsActive)
     {
         CoreServices::sendStatusMessage("Can't change bandwidth while acquisition is active!");
-        if (label == upperBandwidthSelection)
+        if (label == upperBandwidthSelection.get())
             label->setText(lastHighCutString, dontSendNotification);
         else
             label->setText(lastLowCutString, dontSendNotification);
@@ -617,9 +633,9 @@ double BandwidthInterface::getUpperBandwidth()
 void BandwidthInterface::paint(Graphics& g)
 {
 
-    g.setColour(Colours::darkgrey);
+    g.setColour (findColour (ThemeColours::defaultText));
 
-    g.setFont(Font("Small Text", 10, Font::plain));
+    g.setFont (FontOptions ("Inter", "Regular", 10.0f));
 
     g.drawText(name, 0, 0, 200, 15, Justification::left, false);
 
@@ -657,12 +673,12 @@ SampleRateInterface::SampleRateInterface(DeviceThread* board_,
     sampleRateOptions.add("30.0 kS/s");
 
 
-    rateSelection = new ComboBox("Sample Rate");
+    rateSelection = std::make_unique<ComboBox> ("Sample Rate");
     rateSelection->addItemList(sampleRateOptions, 1);
     rateSelection->setSelectedId(17, dontSendNotification);
     rateSelection->addListener(this);
     rateSelection->setBounds(0, 12, 80, 20);
-    addAndMakeVisible(rateSelection);
+    addAndMakeVisible(rateSelection.get());
 }
 
 SampleRateInterface::~SampleRateInterface()
@@ -674,7 +690,7 @@ void SampleRateInterface::comboBoxChanged(ComboBox* cb)
 {
     if (!(editor->acquisitionIsActive) && board->foundInputSource())
     {
-        if (cb == rateSelection)
+        if (cb == rateSelection.get())
         {
             board->setSampleRate(cb->getSelectedId()-1);
 
@@ -704,11 +720,11 @@ String SampleRateInterface::getText()
 void SampleRateInterface::paint(Graphics& g)
 {
 
-    g.setColour(Colours::darkgrey);
+    g.setColour (findColour (ThemeColours::defaultText));
 
-    g.setFont(Font("Small Text", 10, Font::plain));
+    g.setFont (FontOptions ("Inter", "Regular", 10.0f));
 
-    g.drawText(name, 0, 0, 80, 15, Justification::left, false);
+    g.drawText (name, 0, 0, 80, 15, Justification::left, false);
 
 }
 
@@ -759,21 +775,21 @@ HeadstageOptionsInterface::HeadstageOptionsInterface(DeviceThread* board_,
 
 
 
-    hsButton1 = new UtilityButton(" ", Font("Small Text", 13, Font::plain));
+    hsButton1 = std::make_unique<UtilityButton> (" ");
     hsButton1->setRadius(3.0f);
     hsButton1->setBounds(23,1,20,17);
     hsButton1->setEnabledState(false);
     hsButton1->setCorners(true, false, true, false);
     hsButton1->addListener(this);
-    addAndMakeVisible(hsButton1);
+    addAndMakeVisible(hsButton1.get());
 
-    hsButton2 = new UtilityButton(" ", Font("Small Text", 13, Font::plain));
+    hsButton2 = std::make_unique<UtilityButton> (" ");
     hsButton2->setRadius(3.0f);
     hsButton2->setBounds(43,1,20,17);
     hsButton2->setEnabledState(false);
     hsButton2->setCorners(false, true, false, true);
     hsButton2->addListener(this);
-    addAndMakeVisible(hsButton2);
+    addAndMakeVisible(hsButton2.get());
 
     checkEnabledState();
 }
@@ -824,7 +840,7 @@ void HeadstageOptionsInterface::buttonClicked(Button* button)
     if (!(editor->acquisitionIsActive) && board->foundInputSource())
     {
 
-        if ((button == hsButton1) && (board->getChannelsInHeadstage(hsNumber1) == 32))
+        if ((button == hsButton1.get()) && (board->getChannelsInHeadstage(hsNumber1) == 32))
         {
             if (channelsOnHs1 == 32)
                 channelsOnHs1 = 16;
@@ -835,7 +851,7 @@ void HeadstageOptionsInterface::buttonClicked(Button* button)
             board->setNumChannels(hsNumber1, channelsOnHs1);
 
         }
-        else if ((button == hsButton2) && (board->getChannelsInHeadstage(hsNumber2) == 32))
+        else if ((button == hsButton2.get()) && (board->getChannelsInHeadstage(hsNumber2) == 32))
         {
             if (channelsOnHs2 == 32)
                 channelsOnHs2 = 16;
@@ -888,18 +904,15 @@ void HeadstageOptionsInterface::set32Channel(int hsIndex, bool is32Channel)
 
 void HeadstageOptionsInterface::paint(Graphics& g)
 {
-    g.setColour(Colours::lightgrey);
+    g.setColour (findColour (ThemeColours::componentBackground).darker (0.2f));
 
-    g.fillRoundedRectangle(5,0,getWidth()-10,getHeight(),4.0f);
+    g.fillRoundedRectangle (5, 0, getWidth() - 10, getHeight(), 4.0f);
 
-    if (isEnabled)
-        g.setColour(Colours::black);
-    else
-        g.setColour(Colours::grey);
+    g.setColour (findColour (ThemeColours::defaultText).withAlpha (isEnabled ? 1.0f : 0.6f));
 
-    g.setFont(Font("Small Text", 15, Font::plain));
+    g.setFont (FontOptions ("Inter", "Regular", 15.0f));
 
-    g.drawText(name, 8, 2, 200, 15, Justification::left, false);
+    g.drawText (name, 10, 2, 200, 15, Justification::left, false);
 
 }
 
@@ -917,12 +930,12 @@ AudioInterface::AudioInterface(DeviceThread* board_,
 
     actualNoiseSlicerLevel = 0.0f;
 
-    noiseSlicerLevelSelection = new Label("Noise Slicer", lastNoiseSlicerString); // this is currently set in DeviceThread, the cleaner would be to set it here again
+    noiseSlicerLevelSelection = std::make_unique<Label> ("Noise Slicer", lastNoiseSlicerString); // this is currently set in DeviceThread, the cleaner would be to set it here again
     noiseSlicerLevelSelection->setEditable(true, false, false);
     noiseSlicerLevelSelection->addListener(this);
     noiseSlicerLevelSelection->setBounds(45, 6, 35, 20);
     noiseSlicerLevelSelection->setColour(Label::textColourId, Colours::darkgrey);
-    addAndMakeVisible(noiseSlicerLevelSelection);
+    addAndMakeVisible(noiseSlicerLevelSelection.get());
 
 
 }
@@ -937,7 +950,7 @@ void AudioInterface::labelTextChanged(Label* label)
 {
     if (board->foundInputSource())
     {
-        if (label == noiseSlicerLevelSelection)
+        if (label == noiseSlicerLevelSelection.get())
         {
 
             Value val = label->getTextValue();
@@ -987,10 +1000,10 @@ int AudioInterface::getNoiseSlicerLevel()
 void AudioInterface::paint(Graphics& g)
 {
 
-    g.setColour(Colours::darkgrey);
-    g.setFont(Font("Small Text", 10, Font::plain));
-    g.drawText(name, 0, 0, 200, 15, Justification::left, false);
-    g.drawText("Slicer:", 0, 10, 200, 15, Justification::left, false);
+    g.setColour (findColour (ThemeColours::defaultText));
+    g.setFont (FontOptions ("Inter", "Regular", 10.0f));
+    g.drawText (name, 0, 0, 35, 10, Justification::left, false);
+    g.drawText ("Slicer:", 0, 10, 35, 10, Justification::left, false);
 }
 
 
@@ -1004,19 +1017,19 @@ ClockDivideInterface::ClockDivideInterface(DeviceThread* board_,
  , actualDivideRatio(1)
 
 {
-    divideRatioSelection = new Label("Clock Divider", lastDivideRatioString);
+    divideRatioSelection = std::make_unique<Label> ("Clock Divider", lastDivideRatioString);
     divideRatioSelection->setEditable(true, false, false);
     divideRatioSelection->addListener(this);
     divideRatioSelection->setBounds(45, 6, 35, 20);
     divideRatioSelection->setColour(Label::textColourId, Colours::darkgrey);
-    addAndMakeVisible(divideRatioSelection);
+    addAndMakeVisible(divideRatioSelection.get());
 }
 
 void ClockDivideInterface::labelTextChanged(Label* label)
 {
     if (board->foundInputSource())
     {
-        if (label == divideRatioSelection)
+        if (label == divideRatioSelection.get())
         {
             Value val = label->getTextValue();
             int requestedValue = int(val.getValue());
@@ -1045,11 +1058,10 @@ void ClockDivideInterface::setClockDivideRatio(int value)
 
 void ClockDivideInterface::paint(Graphics& g)
 {
-
-    g.setColour(Colours::darkgrey);
-    g.setFont(Font("Small Text", 10, Font::plain));
-    g.drawText(name, 0, 0, 200, 15, Justification::left, false);
-    g.drawText("Divider: ", 0, 10, 200, 15, Justification::left, false);
+    g.setColour (findColour (ThemeColours::defaultText));
+    g.setFont (FontOptions ("Inter", "Regular", 10.0f));
+    g.drawText (name, 0, 0, 35, 10, Justification::left, false);
+    g.drawText ("Divider: ", 0, 10, 35, 10, Justification::left, false);
 }
 
 // DSP Options --------------------------------------------------------------------
@@ -1060,13 +1072,13 @@ DSPInterface::DSPInterface(DeviceThread* board_,
 {
     name = "DSP";
 
-    dspOffsetSelection = new Label("DspOffsetSelection",
-                                   String(round(board->getDspCutoffFreq()*10.f)/10.f));
+    dspOffsetSelection = std::make_unique<Label> ("DspOffsetSelection",
+                                                  String(round(board->getDspCutoffFreq()*10.f)/10.f));
     dspOffsetSelection->setEditable(true, false, false);
     dspOffsetSelection->addListener(this);
     dspOffsetSelection->setBounds(0, 0, 35, 20);
     dspOffsetSelection->setColour(Label::textColourId, Colours::darkgrey);
-    addAndMakeVisible(dspOffsetSelection);
+    addAndMakeVisible(dspOffsetSelection.get());
 }
 
 DSPInterface::~DSPInterface()
@@ -1079,7 +1091,7 @@ void DSPInterface::labelTextChanged(Label* label)
 
     if (!(editor->acquisitionIsActive) && board->foundInputSource())
     {
-        if (label == dspOffsetSelection)
+        if (label == dspOffsetSelection.get())
         {
             Value val = label->getTextValue();
             double requestedValue = double(val.getValue());
@@ -1111,6 +1123,6 @@ double DSPInterface::getDspCutoffFreq()
 
 void DSPInterface::paint(Graphics& g)
 {
-    g.setColour(Colours::darkgrey);
-    g.setFont(Font("Small Text", 10, Font::plain));
+    g.setColour (findColour (ThemeColours::defaultText));
+    g.setFont (FontOptions ("Inter", "Regular", 10.0f));
 }

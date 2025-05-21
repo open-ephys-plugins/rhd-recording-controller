@@ -46,17 +46,26 @@ namespace RhythmNode
 		/** Destructor */
 		~ChannelList() { }
 
-		void setNewName(int channelIndex, String newName);
-		void setNewGain(int channel, float gain);
-		void disableAll();
-		void enableAll();
-		void buttonClicked(Button* btn);
-		void update();
-		void updateButtons();
-		int getMaxChannels() { return maxChannels; }
-		void comboBoxChanged(ComboBox* b);
-		void updateImpedance(Array<int> streams, Array<int> channels, Array<float> magnitude, Array<float> phase);
+		/** Updates label colors */
+		void lookAndFeelChanged() override;
 
+		/** Disables all channels */
+		void disableAll();
+
+		/** Enables all channels */
+		void enableAll();
+
+		/** Button callback */
+		void buttonClicked (Button* btn) override;
+
+		/** ComboBox callback */
+		void comboBoxChanged (ComboBox* b) override;
+
+		/** Updates layout of channel list */
+		void update();
+
+		/** Returns the maximum number of channels (used for setting layout) */
+		int getMaxChannels() { return maxChannels; }
 
 	private:
 
@@ -68,11 +77,11 @@ namespace RhythmNode
 		DeviceThread* board;
 		DeviceEditor* editor;
 
-		ScopedPointer<UtilityButton> impedanceButton;
-		ScopedPointer<UtilityButton> saveImpedanceButton;
+		std::unique_ptr<UtilityButton> impedanceButton;
+		std::unique_ptr<UtilityButton> saveImpedanceButton;
 
-		ScopedPointer<ComboBox> numberingScheme;
-		ScopedPointer<Label> numberingSchemeLabel;
+		std::unique_ptr<ComboBox> numberingScheme;
+		std::unique_ptr<Label> numberingSchemeLabel;
 
 		OwnedArray<Label> staticLabels;
 		OwnedArray<ChannelComponent> channelComponents;
