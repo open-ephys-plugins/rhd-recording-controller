@@ -81,9 +81,9 @@ elseif(APPLE)
 	set_property(TARGET ${PLUGIN_NAME} APPEND_STRING PROPERTY LINK_FLAGS
 	"-undefined dynamic_lookup -rpath @loader_path/../../../../shared-api10")
 
-	add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD COMMAND 
-    install_name_tool -change "@loader_path/../Frameworks/libokFrontPanel.dylib" 
-	"@rpath/libokFrontPanel.dylib" $<TARGET_FILE:${PLUGIN_NAME}>)
+	set_target_properties(${PLUGIN_NAME} PROPERTIES
+		XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+		XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED NO)
 
 	install(TARGETS ${PLUGIN_NAME} DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/plugins-api10)
 endif()
@@ -108,6 +108,6 @@ elseif(LINUX)
 	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/intan_rec_controller_7310.bit DESTINATION ${GUI_BIN_DIR}/shared)
 elseif(APPLE)
 	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.dylib")
-	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.dylib DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared-api10)
+	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.1.dylib DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared-api10)
 	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/intan_rec_controller_7310.bit DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared-api10)
 endif()
