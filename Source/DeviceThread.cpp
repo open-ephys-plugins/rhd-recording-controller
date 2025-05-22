@@ -1060,8 +1060,10 @@ float DeviceThread::getAdcBitVolts (int chan) const
     {
         return adcBitVolts[chan];
     }
-
-    return 0.0f;
+    else
+    {
+        return 0.0003125;  // +/-10.24V / pow(2,16)
+    }
 }
 
 double DeviceThread::setUpperBandwidth(double upper)
@@ -1713,7 +1715,7 @@ bool DeviceThread::updateBuffer()
                 channel++;
                 // ADC waveform units = volts
                 thisSample[channel] =
-                    0.00015258789 * float(*(uint16*)(bufferPtr + index)) - 5 - 0.4096; // account for +/-5V input range and DC offset
+                    0.0003125  * float(*(uint16*)(bufferPtr + index)) - 10.24; // account for +/-10.24V input range and DC offset
                 index += 2;
             }
         }
