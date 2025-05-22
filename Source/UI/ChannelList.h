@@ -29,68 +29,65 @@
 namespace RhythmNode
 {
 
-	class DeviceThread;
-	class DeviceEditor;
-	class ChannelComponent;
+class DeviceThread;
+class DeviceEditor;
+class ChannelComponent;
 
-	class ChannelList : public Component,
-					    public Button::Listener, 
-					    public ComboBox::Listener
-	{
-	public:
+class ChannelList : public Component,
+                    public Button::Listener,
+                    public ComboBox::Listener
+{
+public:
+    /** Constructor */
+    ChannelList (DeviceThread* board,
+                 DeviceEditor* editor);
 
-		/** Constructor */
-		ChannelList(DeviceThread* board,
-					DeviceEditor* editor);
+    /** Destructor */
+    ~ChannelList() {}
 
-		/** Destructor */
-		~ChannelList() { }
+    /** Updates label colors */
+    void lookAndFeelChanged() override;
 
-		/** Updates label colors */
-		void lookAndFeelChanged() override;
+    /** Disables all channels */
+    void disableAll();
 
-		/** Disables all channels */
-		void disableAll();
+    /** Enables all channels */
+    void enableAll();
 
-		/** Enables all channels */
-		void enableAll();
+    /** Button callback */
+    void buttonClicked (Button* btn) override;
 
-		/** Button callback */
-		void buttonClicked (Button* btn) override;
+    /** ComboBox callback */
+    void comboBoxChanged (ComboBox* b) override;
 
-		/** ComboBox callback */
-		void comboBoxChanged (ComboBox* b) override;
+    /** Updates layout of channel list */
+    void update();
 
-		/** Updates layout of channel list */
-		void update();
+    /** Returns the maximum number of channels (used for setting layout) */
+    int getMaxChannels() { return maxChannels; }
 
-		/** Returns the maximum number of channels (used for setting layout) */
-		int getMaxChannels() { return maxChannels; }
+private:
+    Array<float> gains;
+    Array<ChannelInfoObject::Type> types;
 
-	private:
+    bool chainUpdate;
 
-		Array<float> gains;
-		Array<ChannelInfoObject::Type> types;
+    DeviceThread* board;
+    DeviceEditor* editor;
 
-		bool chainUpdate;
+    std::unique_ptr<UtilityButton> impedanceButton;
+    std::unique_ptr<UtilityButton> saveImpedanceButton;
 
-		DeviceThread* board;
-		DeviceEditor* editor;
+    std::unique_ptr<ComboBox> numberingScheme;
+    std::unique_ptr<Label> numberingSchemeLabel;
 
-		std::unique_ptr<UtilityButton> impedanceButton;
-		std::unique_ptr<UtilityButton> saveImpedanceButton;
+    OwnedArray<Label> staticLabels;
+    OwnedArray<ChannelComponent> channelComponents;
 
-		std::unique_ptr<ComboBox> numberingScheme;
-		std::unique_ptr<Label> numberingSchemeLabel;
+    int maxChannels;
 
-		OwnedArray<Label> staticLabels;
-		OwnedArray<ChannelComponent> channelComponents;
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ChannelList);
+};
 
-		int maxChannels;
-
-		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChannelList);
-	};
-
-
-}
-#endif  // __RHD2000EDITOR_H_2AD3C591__
+} // namespace RhythmNode
+#endif // __RHD2000EDITOR_H_2AD3C591__

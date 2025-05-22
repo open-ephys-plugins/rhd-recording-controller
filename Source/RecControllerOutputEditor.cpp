@@ -25,44 +25,42 @@
 #include "RecControllerOutput.h"
 #include <stdio.h>
 
+namespace RecControllerOutputNamespace
+{
 
-namespace RecControllerOutputNamespace {
+RecControllerOutputEditor::RecControllerOutputEditor (GenericProcessor* parentNode)
+    : GenericEditor (parentNode)
 
-    RecControllerOutputEditor::RecControllerOutputEditor(GenericProcessor* parentNode)
-        : GenericEditor(parentNode)
+{
+    desiredWidth = 220;
 
+    board = (RecControllerOutput*) parentNode;
+
+    addTtlLineParameterEditor (Parameter::STREAM_SCOPE, "ttl_out", 15, 25);
+    addTtlLineParameterEditor (Parameter::STREAM_SCOPE, "trigger_line", 15, 65);
+    addTtlLineParameterEditor (Parameter::STREAM_SCOPE, "gate_line", 120, 65);
+    addBoundedValueParameterEditor (Parameter::PROCESSOR_SCOPE, "event_duration", 120, 25);
+
+    for (auto ed : parameterEditors)
     {
-        desiredWidth = 220;
-
-        board = (RecControllerOutput*) parentNode;
-
-        addTtlLineParameterEditor (Parameter::STREAM_SCOPE, "ttl_out", 15, 25);
-        addTtlLineParameterEditor (Parameter::STREAM_SCOPE, "trigger_line", 15, 65);
-        addTtlLineParameterEditor (Parameter::STREAM_SCOPE, "gate_line", 120, 65);
-        addBoundedValueParameterEditor (Parameter::PROCESSOR_SCOPE, "event_duration", 120, 25);
-
-        for (auto ed : parameterEditors)
-        {
-            ed->setLayout (ParameterEditor::Layout::nameOnTop);
-            ed->setSize (85, 36);
-        }
-
-        triggerButton = std::make_unique<UtilityButton> ("Trigger");
-        triggerButton->setBounds (70, 105, 80, 20);
-        triggerButton->setFont (FontOptions(12.0f));
-        triggerButton->addListener (this);
-        addAndMakeVisible (triggerButton.get());
-
+        ed->setLayout (ParameterEditor::Layout::nameOnTop);
+        ed->setSize (85, 36);
     }
 
-    void RecControllerOutputEditor::buttonClicked(Button* button)
-    {
-
-        if (button == triggerButton.get())
-        {
-            RecControllerOutput* processor = (RecControllerOutput*)getProcessor();
-            processor->triggerOutput();
-        }
-    }
-
+    triggerButton = std::make_unique<UtilityButton> ("Trigger");
+    triggerButton->setBounds (70, 105, 80, 20);
+    triggerButton->setFont (FontOptions (12.0f));
+    triggerButton->addListener (this);
+    addAndMakeVisible (triggerButton.get());
 }
+
+void RecControllerOutputEditor::buttonClicked (Button* button)
+{
+    if (button == triggerButton.get())
+    {
+        RecControllerOutput* processor = (RecControllerOutput*) getProcessor();
+        processor->triggerOutput();
+    }
+}
+
+} // namespace RecControllerOutputNamespace

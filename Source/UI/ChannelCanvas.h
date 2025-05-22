@@ -26,15 +26,15 @@
 
 #include <VisualizerEditorHeaders.h>
 
-#include "ChannelList.h"
 #include "ChannelComponent.h"
+#include "ChannelList.h"
 
 namespace RhythmNode
 {
 
-	class DeviceThread;
+class DeviceThread;
 
-	/**
+/**
 
 	  Allows the user to edit channel metadata
 	  and check electrode impedance values.
@@ -43,52 +43,50 @@ namespace RhythmNode
 
 	  */
 
-	class ChannelCanvas : public Visualizer
-	{
-	public:
+class ChannelCanvas : public Visualizer
+{
+public:
+    /** Constructor */
+    ChannelCanvas (DeviceThread* board,
+                   DeviceEditor* editor);
 
-		/** Constructor */
-		ChannelCanvas(DeviceThread* board,
-					  DeviceEditor* editor);
+    /** Destructor */
+    ~ChannelCanvas() {}
 
-		/** Destructor */
-		~ChannelCanvas() { }
+    /** Render the background */
+    void paint (Graphics& g) override;
 
-		/** Render the background */
-		void paint (Graphics& g) override;
+    /** Sets the layout of sub-components*/
+    void resized() override;
 
-		/** Sets the layout of sub-components*/
-		void resized() override;
+    /** Called when the component's tab becomes visible again*/
+    void refreshState() override;
 
-		/** Called when the component's tab becomes visible again*/
-		void refreshState() override;
+    /** Called when parameters of the underlying data processor are changed*/
+    void updateSettings() override;
 
-		/** Called when parameters of the underlying data processor are changed*/
-		void updateSettings() override;
+    /** Calls update after a delay*/
+    void updateAsync();
 
-		/** Calls update after a delay*/
-		void updateAsync();
+    /** Called instead of repaint to avoid redrawing underlying components*/
+    void refresh() override;
 
-		/** Called instead of repaint to avoid redrawing underlying components*/
-		void refresh() override;
+    /** Called when data acquisition starts*/
+    void beginAnimation() override;
 
-		/** Called when data acquisition starts*/
-		void beginAnimation() override;
+    /** Called when data acquisition ends*/
+    void endAnimation() override;
 
-		/** Called when data acquisition ends*/
-		void endAnimation() override;
+    /** Child components*/
+    std::unique_ptr<Viewport> channelViewport;
+    std::unique_ptr<ChannelList> channelList;
 
-		/** Child components*/
-		std::unique_ptr<Viewport> channelViewport;
-		std::unique_ptr<ChannelList> channelList;
+    /** Pointer to the acquisition device */
+    DeviceThread* board;
 
-		/** Pointer to the acquisition device */
-		DeviceThread* board;
+    /** Pointer to the editor object*/
+    DeviceEditor* editor;
+};
 
-		/** Pointer to the editor object*/
-		DeviceEditor* editor;
-		
-	};
-
-}
-#endif  // __CHANNELCANVAS_H_2AD3C591__
+} // namespace RhythmNode
+#endif // __CHANNELCANVAS_H_2AD3C591__

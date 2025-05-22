@@ -20,7 +20,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef __RECORDCONTROLLER_H_2C4CBD67__
 #define __RECORDCONTROLLER_H_2C4CBD67__
 
@@ -29,7 +28,7 @@
 namespace RhythmNode
 {
 
-    /**
+/**
         Communicates with the Intan RHD Recording Controller
 
         https://intantech.com/recording_controller.html
@@ -37,18 +36,15 @@ namespace RhythmNode
         @see DataThread, SourceNode
         */
 
-    class IntanRecordController : public DeviceThread
-    {
-    public:
+class IntanRecordController : public DeviceThread
+{
+public:
+    /** Constructor */
+    IntanRecordController (SourceNode* sn) : DeviceThread (sn) {}
 
-        /** Constructor */
-        IntanRecordController(SourceNode* sn) : DeviceThread(sn) { }
-
-        /** Destructor */
-        ~IntanRecordController() { }
-    };
-}
-
+    /** Destructor */
+    ~IntanRecordController() {}
+};
+} // namespace RhythmNode
 
 #endif
-

@@ -26,18 +26,17 @@
 
 using namespace RhythmNode;
 
-ChannelComponent::ChannelComponent(ChannelList* cl, 
-                                   int ch, 
-                                   int gainIndex_, 
-                                   String name_, 
-                                   Array<float> gains_, 
-                                   ContinuousChannel::Type type_) :
-    type(type_), 
-    gains(gains_), 
-    channelList(cl), 
-    channel(ch), 
-    name(name_), 
-    gainIndex(gainIndex_)
+ChannelComponent::ChannelComponent (ChannelList* cl,
+                                    int ch,
+                                    int gainIndex_,
+                                    String name_,
+                                    Array<float> gains_,
+                                    ContinuousChannel::Type type_) : type (type_),
+                                                                     gains (gains_),
+                                                                     channelList (cl),
+                                                                     channel (ch),
+                                                                     name (name_),
+                                                                     gainIndex (gainIndex_)
 {
     FontOptions f = FontOptions ("Inter", "Regular", 13.0f);
 
@@ -75,20 +74,19 @@ void ChannelComponent::lookAndFeelChanged()
                           findColour (ThemeColours::componentBackground).darker (0.3f));
 }
 
-void ChannelComponent::setImpedanceValues(float mag, float phase)
+void ChannelComponent::setImpedanceValues (float mag, float phase)
 {
     if (impedanceLabel != nullptr)
     {
         if (mag > 10000)
-            impedanceLabel->setText(String(mag/1e6,2)+" MOhm, "+String((int)phase) + " deg",juce::NotificationType::dontSendNotification);
+            impedanceLabel->setText (String (mag / 1e6, 2) + " MOhm, " + String ((int) phase) + " deg", juce::NotificationType::dontSendNotification);
         else if (mag > 1000)
-            impedanceLabel->setText(String(mag/1e3,0)+" kOhm, "+String((int)phase) + " deg" ,juce::NotificationType::dontSendNotification);
+            impedanceLabel->setText (String (mag / 1e3, 0) + " kOhm, " + String ((int) phase) + " deg", juce::NotificationType::dontSendNotification);
         else
-            impedanceLabel->setText(String(mag,0)+" Ohm, "+String((int)phase) + " deg" ,juce::NotificationType::dontSendNotification);
+            impedanceLabel->setText (String (mag, 0) + " Ohm, " + String ((int) phase) + " deg", juce::NotificationType::dontSendNotification);
     }
     else
     {
-
     }
 }
 

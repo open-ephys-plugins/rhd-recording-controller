@@ -20,360 +20,358 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef __DEVICETHREAD_H_2C4CBD67__
 #define __DEVICETHREAD_H_2C4CBD67__
 
 #include <DataThreadHeaders.h>
 
-#include <stdio.h>
-#include <string.h>
 #include <array>
 #include <atomic>
+#include <stdio.h>
+#include <string.h>
 
+#include "rhythm-api/okFrontPanelDLL.h"
+#include "rhythm-api/rhd2000datablockusb3.h"
 #include "rhythm-api/rhd2000evalboardusb3.h"
 #include "rhythm-api/rhd2000registersusb3.h"
-#include "rhythm-api/rhd2000datablockusb3.h"
-#include "rhythm-api/okFrontPanelDLL.h"
 
-#define CHIP_ID_RHD2132  1
-#define CHIP_ID_RHD2216  2
-#define CHIP_ID_RHD2164  4
-#define CHIP_ID_RHD2164_B  1000
-#define REGISTER_59_MISO_A  53
-#define REGISTER_59_MISO_B  58
+#define CHIP_ID_RHD2132 1
+#define CHIP_ID_RHD2216 2
+#define CHIP_ID_RHD2164 4
+#define CHIP_ID_RHD2164_B 1000
+#define REGISTER_59_MISO_A 53
+#define REGISTER_59_MISO_B 58
 #define RHD2132_16CH_OFFSET 8
 
 namespace RhythmNode
 {
 
-	class Headstage;
-	class ImpedanceMeter;
-	class USBThread;
+class Headstage;
+class ImpedanceMeter;
+class USBThread;
 
-	enum ChannelNamingScheme
-	{
-		GLOBAL_INDEX = 1,
-		STREAM_INDEX = 2
-	};
+enum ChannelNamingScheme
+{
+    GLOBAL_INDEX = 1,
+    STREAM_INDEX = 2
+};
 
-	struct Impedances
-	{
-		Array<int> streams;
-		Array<int> channels;
-		Array<float> magnitudes;
-		Array<float> phases;
-		bool valid = false;
-	};
+struct Impedances
+{
+    Array<int> streams;
+    Array<int> channels;
+    Array<float> magnitudes;
+    Array<float> phases;
+    bool valid = false;
+};
 
-	/**
+/**
 		Communicates with a device running Intan's Rhythm Firmware
 
 		@see DataThread, SourceNode
 	*/
-	class DeviceThread : public DataThread
-	{
-		friend class ImpedanceMeter;
+class DeviceThread : public DataThread
+{
+    friend class ImpedanceMeter;
 
-	public:
-		/** Constructor; must specify the type of board used */
-		DeviceThread(SourceNode* sn);
+public:
+    /** Constructor; must specify the type of board used */
+    DeviceThread (SourceNode* sn);
 
-		/** Destructor */
-		~DeviceThread();
+    /** Destructor */
+    ~DeviceThread();
 
-		/** Creates the UI for this plugin */
-		std::unique_ptr<GenericEditor> createEditor(SourceNode* sn);
+    /** Creates the UI for this plugin */
+    std::unique_ptr<GenericEditor> createEditor (SourceNode* sn);
 
-		/** Fills the DataBuffer with incoming data */
-		bool updateBuffer() override;
+    /** Fills the DataBuffer with incoming data */
+    bool updateBuffer() override;
 
-		/** Initializes data transfer*/
-		bool startAcquisition() override;
+    /** Initializes data transfer*/
+    bool startAcquisition() override;
 
-		/** Stops data transfer */
-		bool stopAcquisition() override;
+    /** Stops data transfer */
+    bool stopAcquisition() override;
 
-		/* Passes the processor's info objects to DataThread, to allow them to be configured */
-		void updateSettings(OwnedArray<ContinuousChannel>* continuousChannels,
-			OwnedArray<EventChannel>* eventChannels,
-			OwnedArray<SpikeChannel>* spikeChannels,
-			OwnedArray<DataStream>* sourceStreams,
-			OwnedArray<DeviceInfo>* devices,
-			OwnedArray<ConfigurationObject>* configurationObjects) override;
+    /* Passes the processor's info objects to DataThread, to allow them to be configured */
+    void updateSettings (OwnedArray<ContinuousChannel>* continuousChannels,
+                         OwnedArray<EventChannel>* eventChannels,
+                         OwnedArray<SpikeChannel>* spikeChannels,
+                         OwnedArray<DataStream>* sourceStreams,
+                         OwnedArray<DeviceInfo>* devices,
+                         OwnedArray<ConfigurationObject>* configurationObjects) override;
 
-		/** Updates the measured impedance values for each channel*/
-		void impedanceMeasurementFinished();
+    /** Updates the measured impedance values for each channel*/
+    void impedanceMeasurementFinished();
 
-		/** Returns an array of connected headstages*/
-		Array<const Headstage*> getConnectedHeadstages();
+    /** Returns an array of connected headstages*/
+    Array<const Headstage*> getConnectedHeadstages();
 
-		/** Sets the method for determining channel names*/
-		void setNamingScheme(ChannelNamingScheme scheme);
+    /** Sets the method for determining channel names*/
+    void setNamingScheme (ChannelNamingScheme scheme);
 
-		/** Gets the method for determining channel names*/
-		ChannelNamingScheme getNamingScheme();
+    /** Gets the method for determining channel names*/
+    ChannelNamingScheme getNamingScheme();
 
-		/** Allow the thread to respond to messages sent by other plugins */
-		void handleBroadcastMessage (const String& msg, const int64 messageTimeMilliseconds) override;
+    /** Allow the thread to respond to messages sent by other plugins */
+    void handleBroadcastMessage (const String& msg, const int64 messageTimeMilliseconds) override;
 
-		/** Informs the DataThread about whether to expect saved settings to be loaded*/
-		void initialize(bool signalChainIsLoading) override;
+    /** Informs the DataThread about whether to expect saved settings to be loaded*/
+    void initialize (bool signalChainIsLoading) override;
 
-		void setNumChannels(int hsNum, int nChannels);
+    void setNumChannels (int hsNum, int nChannels);
 
-		int getNumChannels();
+    int getNumChannels();
 
-		int getNumDataOutputs(ContinuousChannel::Type type);
+    int getNumDataOutputs (ContinuousChannel::Type type);
 
-		bool isHeadstageEnabled(int hsNum) const;
+    bool isHeadstageEnabled (int hsNum) const;
 
-		int getChannelsInHeadstage(int hsNum) const;
+    int getChannelsInHeadstage (int hsNum) const;
 
-		/* Gets the absolute channel index from the headstage channel index*/
-		int getChannelFromHeadstage(int hs, int ch);
+    /* Gets the absolute channel index from the headstage channel index*/
+    int getChannelFromHeadstage (int hs, int ch);
 
-		/*Gets the headstage relative channel index from the absolute channel index*/
-		int getHeadstageChannel(int& hs, int ch) const;
+    /*Gets the headstage relative channel index from the absolute channel index*/
+    int getHeadstageChannel (int& hs, int ch) const;
 
-		// for communication with SourceNode processors:
-		bool foundInputSource() override;
+    // for communication with SourceNode processors:
+    bool foundInputSource() override;
 
-		void scanPorts();
+    void scanPorts();
 
-		void saveImpedances(File& file);
+    void saveImpedances (File& file);
 
-		// DEPRECATED:
-		//int getNumDataOutputs(DataChannel::DataChannelTypes type, int subProcessor) const override;
-		//unsigned int getNumSubProcessors() const override;
-		//int getNumTTLOutputs(int subprocessor) const override;
-		//bool usesCustomNames() const override;
-		//float getSampleRate(int subprocessor) const override;
-		//float getBitVolts(const DataChannel* chan) const override;
-		//int modifyChannelGain(int channel, float gain)      override;
-		//int modifyChannelName(int channel, String newName)  override;
-		//void getEventChannelNames(StringArray& Names) const override;
-		//
-		//
-		//String getChannelUnits(int chanIndex) const override;
-		//void setDefaultChannelNames() override;
+    // DEPRECATED:
+    //int getNumDataOutputs(DataChannel::DataChannelTypes type, int subProcessor) const override;
+    //unsigned int getNumSubProcessors() const override;
+    //int getNumTTLOutputs(int subprocessor) const override;
+    //bool usesCustomNames() const override;
+    //float getSampleRate(int subprocessor) const override;
+    //float getBitVolts(const DataChannel* chan) const override;
+    //int modifyChannelGain(int channel, float gain)      override;
+    //int modifyChannelName(int channel, String newName)  override;
+    //void getEventChannelNames(StringArray& Names) const override;
+    //
+    //
+    //String getChannelUnits(int chanIndex) const override;
+    //void setDefaultChannelNames() override;
 
-		String getChannelName(int ch) const;
+    String getChannelName (int ch) const;
 
-		float getAdcBitVolts(int channelNum) const;
+    float getAdcBitVolts (int channelNum) const;
 
-		void setSampleRate(int index, bool temporary = false);
+    void setSampleRate (int index, bool temporary = false);
 
-		double setUpperBandwidth(double upper); // set desired BW, returns actual BW
-		double setLowerBandwidth(double lower);
+    double setUpperBandwidth (double upper); // set desired BW, returns actual BW
+    double setLowerBandwidth (double lower);
 
-		double setDspCutoffFreq(double freq);
-		double getDspCutoffFreq() const;
+    double setDspCutoffFreq (double freq);
+    double getDspCutoffFreq() const;
 
-		void setDSPOffset(bool state);
+    void setDSPOffset (bool state);
 
-		int setNoiseSlicerLevel(int level);
-		void setFastTTLSettle(bool state, int channel);
-		void setTTLoutputMode(bool state);
-		void setDAChpf(float cutoff, bool enabled);
+    int setNoiseSlicerLevel (int level);
+    void setFastTTLSettle (bool state, int channel);
+    void setTTLoutputMode (bool state);
+    void setDAChpf (float cutoff, bool enabled);
 
-		void enableAuxs(bool);
-		void enableAdcs(bool);
+    void enableAuxs (bool);
+    void enableAdcs (bool);
 
-		int TTL_OUTPUT_STATE[16];
+    int TTL_OUTPUT_STATE[16];
 
-		bool isAuxEnabled();
-		bool isAcquisitionActive() const;
+    bool isAuxEnabled();
+    bool isAcquisitionActive() const;
 
-		Array<int> getDACchannels() const;
+    Array<int> getDACchannels() const;
 
-		void setDACchannel(int dacOutput, int channel);
-		void setDACthreshold(int dacOutput, float threshold);
+    void setDACchannel (int dacOutput, int channel);
+    void setDACthreshold (int dacOutput, float threshold);
 
-		int getHeadstageChannels(int hsNum) const;
-		int getActiveChannelsInHeadstage(int hsNum) const;
+    int getHeadstageChannels (int hsNum) const;
+    int getActiveChannelsInHeadstage (int hsNum) const;
 
-		void runImpedanceTest();
+    void runImpedanceTest();
 
-		void enableBoardLeds(bool enable);
+    void enableBoardLeds (bool enable);
 
-		int setClockDivider(int divide_ratio);
+    int setClockDivider (int divide_ratio);
 
-		void setAdcRange(int adcChannel, short rangeType);
+    void setAdcRange (int adcChannel, short rangeType);
 
-		short getAdcRange(int adcChannel) const;
+    short getAdcRange (int adcChannel) const;
 
-		static DataThread* createDataThread(SourceNode* sn);
+    static DataThread* createDataThread (SourceNode* sn);
 
-		class DigitalOutputTimer : public Timer
-		{
-		public:
+    class DigitalOutputTimer : public Timer
+    {
+    public:
+        /** Constructor */
+        DigitalOutputTimer (DeviceThread*, int tllLine, int eventDurationMs);
 
-			/** Constructor */
-			DigitalOutputTimer(DeviceThread*, int tllLine, int eventDurationMs);
+        /** Destructor*/
+        ~DigitalOutputTimer() {}
 
-			/** Destructor*/
-			~DigitalOutputTimer() { }
+        /** Sends signal to turn off event channel*/
+        void timerCallback();
 
-			/** Sends signal to turn off event channel*/
-			void timerCallback();
+    private:
+        DeviceThread* board;
 
-		private:
-			DeviceThread* board;
+        int tllOutputLine;
+    };
 
-			int tllOutputLine;
-		};
+    struct DigitalOutputCommand
+    {
+        int ttlLine;
+        bool state;
+    };
 
-		struct DigitalOutputCommand {
-			int ttlLine;
-			bool state;
-		};
+    void addDigitalOutputCommand (DigitalOutputTimer* timerToDelete,
+                                  int ttlLine,
+                                  bool state);
 
-		void addDigitalOutputCommand(DigitalOutputTimer* timerToDelete,
-			int ttlLine,
-			bool state);
+    int MAX_NUM_HEADSTAGES;
 
-		int MAX_NUM_HEADSTAGES;
+private:
+    std::queue<DigitalOutputCommand> digitalOutputCommands;
 
-	private:
+    OwnedArray<DigitalOutputTimer> digitalOutputTimers;
 
-		std::queue<DigitalOutputCommand> digitalOutputCommands;
+    bool enableHeadstage (int hsNum, bool enabled, int nStr = 1, int strChans = 32);
+    void updateBoardStreams();
+    void setCableLength (int hsNum, float length);
 
-		OwnedArray<DigitalOutputTimer> digitalOutputTimers;
+    /** Rhythm API classes*/
+    std::unique_ptr<Rhd2000EvalBoardUsb3> evalBoard;
+    Rhd2000RegistersUsb3 chipRegisters;
+    std::unique_ptr<Rhd2000DataBlockUsb3> dataBlock;
+    Array<int> enabledStreams;
 
-		bool enableHeadstage(int hsNum, bool enabled, int nStr = 1, int strChans = 32);
-		void updateBoardStreams();
-		void setCableLength(int hsNum, float length);
+    /** Custom classes*/
+    OwnedArray<Headstage> headstages;
+    std::unique_ptr<ImpedanceMeter> impedanceThread;
 
-		/** Rhythm API classes*/
-		std::unique_ptr<Rhd2000EvalBoardUsb3> evalBoard;
-		Rhd2000RegistersUsb3 chipRegisters;
-		std::unique_ptr<Rhd2000DataBlockUsb3> dataBlock;
-		Array<int> enabledStreams;
+    /** True if device is available*/
+    bool deviceFound;
 
-		/** Custom classes*/
-		OwnedArray<Headstage> headstages;
-		std::unique_ptr<ImpedanceMeter> impedanceThread;
+    /** True if data is streaming*/
+    bool isTransmitting;
 
-		/** True if device is available*/
-		bool deviceFound;
+    /** True if change in settings is needed during acquisition*/
+    bool updateSettingsDuringAcquisition;
 
-		/** True if data is streaming*/
-		bool isTransmitting;
+    /** Data buffers*/
+    float thisSample[MAX_NUM_CHANNELS];
 
-		/** True if change in settings is needed during acquisition*/
-		bool updateSettingsDuringAcquisition;
+    float auxBuffer[MAX_NUM_CHANNELS]; // aux inputs are only sampled every 4th sample, so use this to buffer the
+    // samples so they can be handles just like the regular neural channels later
 
-		/** Data buffers*/
-		float thisSample[MAX_NUM_CHANNELS];
+    float auxSamples[MAX_NUM_DATA_STREAMS][3];
 
-		float auxBuffer[MAX_NUM_CHANNELS]; // aux inputs are only sampled every 4th sample, so use this to buffer the
-										   // samples so they can be handles just like the regular neural channels later
+    std::unique_ptr<USBThread> usbThread;
 
-		float auxSamples[MAX_NUM_DATA_STREAMS][3];
+    unsigned int blockSize;
 
-		std::unique_ptr<USBThread> usbThread;
+    /** Cable length settings */
+    struct CableLength
+    {
+        float portA = 0.914f;
+        float portB = 0.914f;
+        float portC = 0.914f;
+        float portD = 0.914f;
+        float portE = 0.914f;
+        float portF = 0.914f;
+        float portG = 0.914f;
+        float portH = 0.914f;
+    };
 
-		unsigned int blockSize;
+    /** Dsp settings*/
+    struct Dsp
+    {
+        bool enabled = true;
+        double cutoffFreq = 0.5;
+        double upperBandwidth = 7500.0f;
+        double lowerBandwidth = 1.0f;
+    };
 
-		/** Cable length settings */
-		struct CableLength
-		{
-			float portA = 0.914f;
-			float portB = 0.914f;
-			float portC = 0.914f;
-			float portD = 0.914f;
-			float portE = 0.914f;
-			float portF = 0.914f;
-			float portG = 0.914f;
-			float portH = 0.914f;
-		};
+    /** struct containing board settings*/
+    struct Settings
+    {
+        bool acquireAux = false;
+        bool acquireAdc = false;
 
-		/** Dsp settings*/
-		struct Dsp
-		{
-			bool enabled = true;
-			double cutoffFreq = 0.5;
-			double upperBandwidth = 7500.0f;
-			double lowerBandwidth = 1.0f;
-		};
+        bool fastSettleEnabled = false;
+        bool fastTTLSettleEnabled = false;
+        int fastSettleTTLChannel = -1;
+        bool ttlMode = false;
 
-		/** struct containing board settings*/
-		struct Settings
-		{
-			bool acquireAux = false;
-			bool acquireAdc = false;
+        Dsp dsp;
 
-			bool fastSettleEnabled = false;
-			bool fastTTLSettleEnabled = false;
-			int fastSettleTTLChannel = -1;
-			bool ttlMode = false;
+        int noiseSlicerLevel;
 
-			Dsp dsp;
+        bool desiredDAChpfState;
+        double desiredDAChpf;
+        float boardSampleRate = 30000.f;
+        int savedSampleRateIndex = 16;
 
-			int noiseSlicerLevel;
+        CableLength cableLength;
 
-			bool desiredDAChpfState;
-			double desiredDAChpf;
-			float boardSampleRate = 30000.f;
-			int savedSampleRateIndex = 16;
+        int audioOutputL = -1;
+        int audioOutputR = -1;
+        bool ledsEnabled = true;
+        bool newScan = true;
+        int numberingScheme = 1;
+        uint16 clockDivideFactor;
 
-			CableLength cableLength;
+    } settings;
 
-			int audioOutputL = -1;
-			int audioOutputR = -1;
-			bool ledsEnabled = true;
-			bool newScan = true;
-			int numberingScheme = 1;
-			uint16 clockDivideFactor;
+    /** Path to Opal Kelly library file*/
+    String libraryFilePath;
 
-		} settings;
+    /** Opal Kelly board type*/
+    Rhd2000EvalBoardUsb3::OpalKellyBoardType okBoardType;
 
-		/** Path to Opal Kelly library file*/
-		String libraryFilePath;
+    /** Open the connection to the acquisition board*/
+    bool openBoard (String pathToLibrary);
 
-		/** Opal Kelly board type*/
-		Rhd2000EvalBoardUsb3::OpalKellyBoardType okBoardType;
+    /** Upload the bitfile*/
+    bool uploadBitfile (String pathToBitfile);
 
-		/** Open the connection to the acquisition board*/
-		bool openBoard(String pathToLibrary);
+    /** Initialize the board*/
+    void initializeBoard();
 
-		/** Upload the bitfile*/
-		bool uploadBitfile(String pathToBitfile);
+    /** Update register settings*/
+    void updateRegisters();
 
-		/** Initialize the board*/
-		void initializeBoard();
+    /** Returns the device ID for an Intan chip*/
+    int getDeviceId (Rhd2000DataBlockUsb3* dataBlock, int stream, int& register59Value);
 
-		/** Update register settings*/
-		void updateRegisters();
+    int *dacChannels, *dacStream;
+    float* dacThresholds;
+    bool* dacChannelsToUpdate;
+    Array<int> chipId;
 
-		/** Returns the device ID for an Intan chip*/
-		int getDeviceId(Rhd2000DataBlockUsb3* dataBlock, int stream, int& register59Value);
+    Array<int> numChannelsPerDataStream;
 
-		int* dacChannels, *dacStream;
-		float* dacThresholds;
-		bool* dacChannelsToUpdate;
-		Array<int> chipId;
+    ChannelNamingScheme channelNamingScheme;
 
-		Array<int> numChannelsPerDataStream;
+    /** ADC info */
+    std::array<std::atomic_short, 8> adcRangeSettings;
+    Array<float> adcBitVolts;
+    StringArray adcChannelNames;
+    StringArray ttlLineNames;
 
-		ChannelNamingScheme channelNamingScheme;
+    /** Impedance data*/
+    Impedances impedances;
 
-		/** ADC info */
-		std::array<std::atomic_short, 8> adcRangeSettings;
-		Array<float> adcBitVolts;
-		StringArray adcChannelNames;
-		StringArray ttlLineNames;
+    StringArray channelNames;
 
-		/** Impedance data*/
-		Impedances impedances;
+    double ts = 0; // placeholder double timestamp value
 
-		StringArray channelNames;
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DeviceThread);
+};
 
-		double ts = 0; // placeholder double timestamp value
-
-		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DeviceThread);
-	};
-
-}
-#endif  // __DEVICETHREAD_H_2C4CBD67__
+} // namespace RhythmNode
+#endif // __DEVICETHREAD_H_2C4CBD67__

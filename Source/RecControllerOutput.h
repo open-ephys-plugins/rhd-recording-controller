@@ -26,52 +26,49 @@
 
 #include <ProcessorHeaders.h>
 
+namespace RecControllerOutputNamespace
+{
 
-namespace RecControllerOutputNamespace {
-
-    /**
+/**
         Controls the outputs of the Open Ephys Acquisition Board
 
         Only works if an Acquisition Board plugin is in the signal chain
 
         @see GenericProcessor
      */
-    class RecControllerOutput : public GenericProcessor
-    {
-    public:
+class RecControllerOutput : public GenericProcessor
+{
+public:
+    /** Constructor*/
+    RecControllerOutput();
 
-        /** Constructor*/
-        RecControllerOutput();
+    /** Destructor*/
+    ~RecControllerOutput() {}
 
-        /** Destructor*/
-        ~RecControllerOutput() { }
+    /** Registers the parameters*/
+    void registerParameters() override;
 
-        /** Registers the parameters*/
-        void registerParameters() override;
+    /** Searches for events and triggers the Arduino output when appropriate. */
+    void process (AudioBuffer<float>& buffer) override;
 
-        /** Searches for events and triggers the Arduino output when appropriate. */
-        void process(AudioBuffer<float>& buffer) override;
+    /** Convenient interface for responding to incoming events. */
+    void handleTTLEvent (TTLEventPtr event) override;
 
-        /** Convenient interface for responding to incoming events. */
-        void handleTTLEvent(TTLEventPtr event) override;
+    /** Creates the RecControllerOutputEditor. */
+    AudioProcessorEditor* createEditor() override;
 
-        /** Creates the RecControllerOutputEditor. */
-        AudioProcessorEditor* createEditor() override;
+    /** Manually triggers output when editor button is clicked */
+    void triggerOutput();
 
-        /** Manually triggers output when editor button is clicked */
-        void triggerOutput();
+    /** Responds to change in parameter trigger value */
+    void parameterValueChanged (Parameter*);
 
-        /** Responds to change in parameter trigger value */
-        void parameterValueChanged(Parameter*);
+private:
+    bool gateIsOpen;
 
-    private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RecControllerOutput);
+};
 
-        bool gateIsOpen;
+} // namespace RecControllerOutputNamespace
 
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RecControllerOutput);
-    };
-
-}
-
-
-#endif  // __RECCONTROLLEROUTPUT_H_F7BDA585__
+#endif // __RECCONTROLLEROUTPUT_H_F7BDA585__

@@ -29,110 +29,108 @@
 namespace RhythmNode
 {
 
-	class HeadstageOptionsInterface;
-	class SampleRateInterface;
-	class BandwidthInterface;
-	class DSPInterface;
-	class AudioInterface;
-	class ClockDivideInterface;
-	class DeviceThread;
-	class ChannelCanvas;
+class HeadstageOptionsInterface;
+class SampleRateInterface;
+class BandwidthInterface;
+class DSPInterface;
+class AudioInterface;
+class ClockDivideInterface;
+class DeviceThread;
+class ChannelCanvas;
 
-	struct ImpedanceData;
+struct ImpedanceData;
 
-	class DeviceEditor : public VisualizerEditor, 
-						 public ComboBox::Listener, 
-						 public Button::Listener,
-					     public PopupChannelSelector::Listener
+class DeviceEditor : public VisualizerEditor,
+                     public ComboBox::Listener,
+                     public Button::Listener,
+                     public PopupChannelSelector::Listener
 
-	{
-	public:
+{
+public:
+    /** Constructor */
+    DeviceEditor (GenericProcessor* parentNode, DeviceThread* thread);
 
-		/** Constructor */
-		DeviceEditor(GenericProcessor* parentNode, DeviceThread* thread);
+    /** Destructor*/
+    ~DeviceEditor() {}
 
-		/** Destructor*/
-		~DeviceEditor() { }
+    /** Respond to combo box changes (e.g. sample rate)*/
+    void comboBoxChanged (ComboBox* comboBox) override;
 
-		/** Respond to combo box changes (e.g. sample rate)*/
-		void comboBoxChanged (ComboBox* comboBox) override;
+    /** Respond to button clicks*/
+    void buttonClicked (Button* button) override;
 
-		/** Respond to button clicks*/
-		void buttonClicked (Button* button) override;
+    /** Disable UI during acquisition*/
+    void startAcquisition() override;
 
-		/** Disable UI during acquisition*/
-		void startAcquisition() override;
+    /** Enable UI after acquisition is finished*/
+    void stopAcquisition() override;
 
-		/** Enable UI after acquisition is finished*/
-		void stopAcquisition() override;
+    /** Runs impedance test*/
+    void measureImpedance();
 
-		/** Runs impedance test*/
-		void measureImpedance();
+    /** Callback when impedance measurement is finished */
+    void impedanceMeasurementFinished();
 
-		/** Callback when impedance measurement is finished */
-		void impedanceMeasurementFinished();
+    /** Saves impedance data to a file */
+    void saveImpedance (File& file);
 
-		/** Saves impedance data to a file */
-		void saveImpedance (File& file);
+    /** Updates channel canvas*/
+    void updateSettings() override;
 
-		/** Updates channel canvas*/
-		void updateSettings() override;
+    /** Saves custom parameters */
+    void saveVisualizerEditorParameters (XmlElement* xml) override;
 
-		/** Saves custom parameters */
-		void saveVisualizerEditorParameters (XmlElement* xml) override;
+    /** Loads custom parameters*/
+    void loadVisualizerEditorParameters (XmlElement* xml) override;
 
-		/** Loads custom parameters*/
-		void loadVisualizerEditorParameters (XmlElement* xml) override;
+    /** Creates an interface with additional channel settings*/
+    Visualizer* createNewCanvas (void) override;
 
-		/** Creates an interface with additional channel settings*/
-		Visualizer* createNewCanvas (void) override;
+    /** Called by PopupChannelSelector */
+    void channelStateChanged (Array<int> newChannels) override;
 
-		/** Called by PopupChannelSelector */
-		void channelStateChanged (Array<int> newChannels) override;
+    /** Called by PopupChannelSelector */
+    int getChannelCount() override;
 
-		/** Called by PopupChannelSelector */
-		int getChannelCount() override;
+    virtual Array<int> getSelectedChannels() override { return Array<int>(); }
 
-		virtual Array<int> getSelectedChannels() override { return Array<int>(); }
+private:
+    OwnedArray<HeadstageOptionsInterface> headstageOptionsInterfaces;
+    OwnedArray<ElectrodeButton> electrodeButtons;
 
-	private:
+    std::unique_ptr<SampleRateInterface> sampleRateInterface;
+    std::unique_ptr<BandwidthInterface> bandwidthInterface;
+    std::unique_ptr<DSPInterface> dspInterface;
 
-		OwnedArray<HeadstageOptionsInterface> headstageOptionsInterfaces;
-		OwnedArray<ElectrodeButton> electrodeButtons;
+    std::unique_ptr<AudioInterface> audioInterface;
+    std::unique_ptr<ClockDivideInterface> clockInterface;
 
-		std::unique_ptr<SampleRateInterface> sampleRateInterface;
-		std::unique_ptr<BandwidthInterface> bandwidthInterface;
-		std::unique_ptr<DSPInterface> dspInterface;
+    std::unique_ptr<UtilityButton> rescanButton, dacTTLButton;
+    std::unique_ptr<UtilityButton> auxButton;
+    std::unique_ptr<UtilityButton> adcButton;
 
-		std::unique_ptr<AudioInterface> audioInterface;
-		std::unique_ptr<ClockDivideInterface> clockInterface;
+    std::unique_ptr<UtilityButton> dspoffsetButton;
+    std::unique_ptr<ComboBox> ttlSettleCombo, dacHPFcombo;
+    std::unique_ptr<Label> audioLabel, ttlSettleLabel, dacHPFlabel;
+    std::unique_ptr<Label> noBoardsDetectedLabel;
 
-		std::unique_ptr<UtilityButton> rescanButton, dacTTLButton;
-		std::unique_ptr<UtilityButton> auxButton;
-		std::unique_ptr<UtilityButton> adcButton;
+    bool saveImpedances, measureWhenRecording;
 
-		std::unique_ptr<UtilityButton> dspoffsetButton;
-		std::unique_ptr<ComboBox> ttlSettleCombo, dacHPFcombo;
-		std::unique_ptr<Label> audioLabel, ttlSettleLabel, dacHPFlabel;
-		std::unique_ptr<Label> noBoardsDetectedLabel;
+    DeviceThread* board;
+    ChannelCanvas* canvas;
 
-		bool saveImpedances, measureWhenRecording;
+    enum AudioChannel
+    {
+        LEFT = 0,
+        RIGHT = 1
+    };
 
-		DeviceThread* board;
-		ChannelCanvas* canvas;
+    AudioChannel activeAudioChannel;
 
-		enum AudioChannel {
-			LEFT = 0,
-			RIGHT = 1
-		};
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DeviceEditor);
+};
 
-		AudioChannel activeAudioChannel;
-
-		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DeviceEditor);
-
-	};
-
-	/** 
+/** 
 	
 		Holds buttons for headstages on one port.
 
@@ -140,190 +138,174 @@ namespace RhythmNode
 		allows the user to toggle between 16 and 32-channel mode
 		
 	*/
-	class HeadstageOptionsInterface : public Component,
-									  public Button::Listener
-	{
-	public:
+class HeadstageOptionsInterface : public Component,
+                                  public Button::Listener
+{
+public:
+    /** Constructor*/
+    HeadstageOptionsInterface (DeviceThread*, DeviceEditor*, int hsNum);
 
-		/** Constructor*/
-		HeadstageOptionsInterface(DeviceThread*, DeviceEditor*, int hsNum);
+    /** Destructor */
+    ~HeadstageOptionsInterface();
 
-		/** Destructor */
-		~HeadstageOptionsInterface();
+    /** Draw the options interface background */
+    void paint (Graphics& g);
 
-		/** Draw the options interface background */
-		void paint(Graphics& g);
+    /** Toggle between 16 and 32 ch */
+    void buttonClicked (Button* button);
 
-		/** Toggle between 16 and 32 ch */
-		void buttonClicked(Button* button);
+    /** Refresh button state*/
+    void checkEnabledState();
 
-		/** Refresh button state*/
-		void checkEnabledState();
+    /** Checks whether headstage is in 32- or 16-channel mode*/
+    bool is32Channel (int hsIndex);
 
-		/** Checks whether headstage is in 32- or 16-channel mode*/
-		bool is32Channel(int hsIndex);
+    /** Sets HS in 32- or 16-ch mode */
+    void set32Channel (int hsIndex, bool is32Channel);
 
-		/** Sets HS in 32- or 16-ch mode */
-		void set32Channel(int hsIndex, bool is32Channel);
+private:
+    int hsNumber1, hsNumber2;
+    int channelsOnHs1, channelsOnHs2;
+    String name;
 
-	private:
+    bool isEnabled;
 
-		int hsNumber1, hsNumber2;
-		int channelsOnHs1, channelsOnHs2;
-		String name;
+    DeviceThread* board;
+    DeviceEditor* editor;
 
-		bool isEnabled;
+    std::unique_ptr<UtilityButton> hsButton1;
+    std::unique_ptr<UtilityButton> hsButton2;
+};
 
-		DeviceThread* board;
-		DeviceEditor* editor;
+class BandwidthInterface : public Component,
+                           public Label::Listener
+{
+public:
+    BandwidthInterface (DeviceThread*, DeviceEditor*);
+    ~BandwidthInterface();
 
-		std::unique_ptr<UtilityButton> hsButton1;
-    	std::unique_ptr<UtilityButton> hsButton2;
+    void paint (Graphics& g);
+    void labelTextChanged (Label* te);
 
-	};
+    void setLowerBandwidth (double value);
+    void setUpperBandwidth (double value);
+    double getLowerBandwidth();
+    double getUpperBandwidth();
 
+private:
+    String name;
 
-	class BandwidthInterface : public Component,
-		public Label::Listener
-	{
-	public:
-		BandwidthInterface(DeviceThread*, DeviceEditor*);
-		~BandwidthInterface();
+    String lastLowCutString, lastHighCutString;
 
-		void paint(Graphics& g);
-		void labelTextChanged(Label* te);
+    DeviceThread* board;
+    DeviceEditor* editor;
 
-		void setLowerBandwidth(double value);
-		void setUpperBandwidth(double value);
-		double getLowerBandwidth();
-		double getUpperBandwidth();
+    std::unique_ptr<Label> upperBandwidthSelection;
+    std::unique_ptr<Label> lowerBandwidthSelection;
 
-	private:
+    double actualUpperBandwidth;
+    double actualLowerBandwidth;
+};
 
-		String name;
+class DSPInterface : public Component,
+                     public Label::Listener
+{
+public:
+    DSPInterface (DeviceThread*, DeviceEditor*);
+    ~DSPInterface();
 
-		String lastLowCutString, lastHighCutString;
+    void paint (Graphics& g);
+    void labelTextChanged (Label* te);
 
-		DeviceThread* board;
-		DeviceEditor* editor;
+    void setDspCutoffFreq (double value);
+    double getDspCutoffFreq();
 
-		std::unique_ptr<Label> upperBandwidthSelection;
-		std::unique_ptr<Label> lowerBandwidthSelection;
+private:
+    String name;
 
-		double actualUpperBandwidth;
-		double actualLowerBandwidth;
+    DeviceThread* board;
+    DeviceEditor* editor;
 
-	};
+    std::unique_ptr<Label> dspOffsetSelection;
 
-	class DSPInterface : public Component,
-		public Label::Listener
-	{
-	public:
-		DSPInterface(DeviceThread*, DeviceEditor*);
-		~DSPInterface();
+    double actualDspCutoffFreq;
+};
 
-		void paint(Graphics& g);
-		void labelTextChanged(Label* te);
+class SampleRateInterface : public Component,
+                            public ComboBox::Listener
+{
+public:
+    SampleRateInterface (DeviceThread*, DeviceEditor*);
+    ~SampleRateInterface();
 
-		void setDspCutoffFreq(double value);
-		double getDspCutoffFreq();
+    int getSelectedId();
+    void setSelectedId (int);
 
-	private:
+    String getText();
 
-		String name;
+    void paint (Graphics& g);
+    void comboBoxChanged (ComboBox* cb);
 
-		DeviceThread* board;
-		DeviceEditor* editor;
+private:
+    int sampleRate;
+    String name;
 
-		std::unique_ptr<Label> dspOffsetSelection;
+    DeviceThread* board;
+    DeviceEditor* editor;
 
-		double actualDspCutoffFreq;
+    std::unique_ptr<ComboBox> rateSelection;
+    StringArray sampleRateOptions;
+};
 
-	};
+class AudioInterface : public Component,
+                       public Label::Listener
+{
+public:
+    AudioInterface (DeviceThread*, DeviceEditor*);
+    ~AudioInterface();
 
+    void paint (Graphics& g);
+    void labelTextChanged (Label* te);
 
+    void setNoiseSlicerLevel (int value);
+    int getNoiseSlicerLevel();
 
-	class SampleRateInterface : public Component,
-		public ComboBox::Listener
-	{
-	public:
-		SampleRateInterface(DeviceThread*, DeviceEditor*);
-		~SampleRateInterface();
+private:
+    String name;
 
-		int getSelectedId();
-		void setSelectedId(int);
+    String lastNoiseSlicerString;
+    String lastGainString;
 
-		String getText();
+    DeviceThread* board;
+    DeviceEditor* editor;
 
-		void paint(Graphics& g);
-		void comboBoxChanged(ComboBox* cb);
+    std::unique_ptr<Label> noiseSlicerLevelSelection;
 
-	private:
+    int actualNoiseSlicerLevel;
+};
 
-		int sampleRate;
-		String name;
+class ClockDivideInterface : public Component,
+                             public Label::Listener
+{
+public:
+    ClockDivideInterface (DeviceThread*, DeviceEditor*);
 
-		DeviceThread* board;
-		DeviceEditor* editor;
+    void paint (Graphics& g);
+    void labelTextChanged (Label* te);
 
-		std::unique_ptr<ComboBox> rateSelection;
-		StringArray sampleRateOptions;
+    void setClockDivideRatio (int value);
+    int getClockDivideRatio() const { return actualDivideRatio; };
 
-	};
+private:
+    String name;
+    String lastDivideRatioString;
 
-	class AudioInterface : public Component,
-		public Label::Listener
-	{
-	public:
-		AudioInterface(DeviceThread*, DeviceEditor*);
-		~AudioInterface();
+    DeviceThread* board;
+    DeviceEditor* editor;
 
-		void paint(Graphics& g);
-		void labelTextChanged(Label* te);
+    std::unique_ptr<Label> divideRatioSelection;
+    int actualDivideRatio;
+};
 
-		void setNoiseSlicerLevel(int value);
-		int getNoiseSlicerLevel();
-
-	private:
-
-		String name;
-
-		String lastNoiseSlicerString;
-		String lastGainString;
-
-		DeviceThread* board;
-		DeviceEditor* editor;
-
-		std::unique_ptr<Label> noiseSlicerLevelSelection;
-
-		int actualNoiseSlicerLevel;
-
-	};
-
-	class ClockDivideInterface : public Component,
-		public Label::Listener
-	{
-	public:
-		ClockDivideInterface(DeviceThread*, DeviceEditor*);
-
-		void paint(Graphics& g);
-		void labelTextChanged(Label* te);
-
-		void setClockDivideRatio(int value);
-		int getClockDivideRatio() const { return actualDivideRatio; };
-
-	private:
-
-		String name;
-		String lastDivideRatioString;
-
-		DeviceThread * board;
-		DeviceEditor * editor;
-
-		std::unique_ptr<Label> divideRatioSelection;
-		int actualDivideRatio;
-
-	};
-
-}
-#endif  // __DEVICEEDITOR_H_2AD3C591__
+} // namespace RhythmNode
+#endif // __DEVICEEDITOR_H_2AD3C591__

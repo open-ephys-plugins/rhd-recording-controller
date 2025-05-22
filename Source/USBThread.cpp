@@ -20,87 +20,85 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "USBThread.h"
 #include "rhythm-api/rhd2000evalboardusb3.h"
 
 using namespace RhythmNode;
 
-USBThread::USBThread(Rhd2000EvalBoardUsb3* b)
-	: m_board(b), Thread("USBThread")
+USBThread::USBThread (Rhd2000EvalBoardUsb3* b)
+    : m_board (b), Thread ("USBThread")
 {
 }
-
 
 USBThread::~USBThread()
 {
 }
 
-void USBThread::startAcquisition(int nBytes)
+void USBThread::startAcquisition (int nBytes)
 {
-    ScopedLock lock(m_lock);
-	for (int i = 0; i < 2; i++)
-	{
-		m_lastRead[i] = 0;
-		m_buffers[i].malloc(nBytes);
-	}
-	m_curBuffer = 0;
-	m_readBuffer = 0;
-	m_canRead = true;
-	startThread();
+    ScopedLock lock (m_lock);
+    for (int i = 0; i < 2; i++)
+    {
+        m_lastRead[i] = 0;
+        m_buffers[i].malloc (nBytes);
+    }
+    m_curBuffer = 0;
+    m_readBuffer = 0;
+    m_canRead = true;
+    startThread();
 }
 
 void USBThread::stopAcquisition()
 {
-	std::cout << "Stopping usb thread" << std::endl;
-	if (isThreadRunning())
-	{
-		if (!stopThread(1000))
-		{
-			std::cerr << "USB Thread could not stop cleanly. Force quitting it" << std::endl;
-		}
-	}
+    std::cout << "Stopping usb thread" << std::endl;
+    if (isThreadRunning())
+    {
+        if (! stopThread (1000))
+        {
+            std::cerr << "USB Thread could not stop cleanly. Force quitting it" << std::endl;
+        }
+    }
 }
 
-long USBThread::usbRead(unsigned char*& buffer)
+long USBThread::usbRead (unsigned char*& buffer)
 {
-	ScopedLock lock(m_lock);
-	if (m_readBuffer == m_curBuffer)
-		return 0;
-	buffer = m_buffers[m_readBuffer].getData();
-	long read = m_lastRead[m_readBuffer];
-	m_readBuffer = ++m_readBuffer % 2;
-	m_canRead = true;
-	notify();
-	return read;
+    ScopedLock lock (m_lock);
+    if (m_readBuffer == m_curBuffer)
+        return 0;
+    buffer = m_buffers[m_readBuffer].getData();
+    long read = m_lastRead[m_readBuffer];
+    m_readBuffer = ++m_readBuffer % 2;
+    m_canRead = true;
+    notify();
+    return read;
 }
 
 void USBThread::run()
 {
-	while (!threadShouldExit())
-	{
-		m_lock.enter();
-		if (m_canRead)
-		{
-			m_lock.exit();
-			long read;
-			do
-			{
-				if (threadShouldExit())
-					break;
-				read = m_board->readDataBlocksRaw(1, m_buffers[m_curBuffer].getData());
-			} while (read <= 0);
-			{
-				ScopedLock lock(m_lock);
-				m_lastRead[m_curBuffer] = read;
-				m_curBuffer = ++m_curBuffer % 2;
-				m_canRead = false;
-			}
-		}
-		else
-			m_lock.exit();
+    while (! threadShouldExit())
+    {
+        m_lock.enter();
+        if (m_canRead)
+        {
+            m_lock.exit();
+            long read;
+            do
+            {
+                if (threadShouldExit())
+                    break;
+                read = m_board->readDataBlocksRaw (1, m_buffers[m_curBuffer].getData());
+            } while (read <= 0);
+            {
+                ScopedLock lock (m_lock);
+                m_lastRead[m_curBuffer] = read;
+                m_curBuffer = ++m_curBuffer % 2;
+                m_canRead = false;
+            }
+        }
+        else
+            m_lock.exit();
 
-		if (!threadShouldExit())
-			wait(100);
-	}
+        if (! threadShouldExit())
+            wait (100);
+    }
 }

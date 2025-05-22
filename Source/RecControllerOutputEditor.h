@@ -24,12 +24,12 @@
 #ifndef __RECCONTROLLEROUTPUTEDITOR_H_28EB4CC9__
 #define __RECCONTROLLEROUTPUTEDITOR_H_28EB4CC9__
 
-
 #include <EditorHeaders.h>
 
-namespace RecControllerOutputNamespace {
+namespace RecControllerOutputNamespace
+{
 
-    /**
+/**
 
       User interface for the RecControllerOutput processor.
 
@@ -37,34 +37,30 @@ namespace RecControllerOutputNamespace {
 
     */
 
-    class RecControllerOutput;
+class RecControllerOutput;
 
-    class RecControllerOutputEditor : public GenericEditor,
-                                 public Button::Listener
+class RecControllerOutputEditor : public GenericEditor,
+                                  public Button::Listener
 
-    {
-    public:
+{
+public:
+    /** Constructor*/
+    RecControllerOutputEditor (GenericProcessor* parentNode);
 
-        /** Constructor*/
-        RecControllerOutputEditor(GenericProcessor* parentNode);
+    /** Destructor*/
+    ~RecControllerOutputEditor() {}
 
-        /** Destructor*/
-        ~RecControllerOutputEditor() { }
+    /** Responds to trigger button press*/
+    void buttonClicked (Button* button);
 
-        /** Responds to trigger button press*/
-        void buttonClicked(Button* button);
+private:
+    std::unique_ptr<UtilityButton> triggerButton;
 
-    private:
+    RecControllerOutput* board;
 
-        std::unique_ptr<UtilityButton> triggerButton;
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RecControllerOutputEditor);
+};
 
-        RecControllerOutput* board;
+} // namespace RecControllerOutputNamespace
 
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RecControllerOutputEditor);
-
-    };
-
-
-}
-
-#endif  // __RECCONTROLLEROUTPUTEDITOR_H_28EB4CC9__
+#endif // __RECCONTROLLEROUTPUTEDITOR_H_28EB4CC9__

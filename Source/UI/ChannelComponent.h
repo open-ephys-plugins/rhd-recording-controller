@@ -29,51 +29,48 @@
 namespace RhythmNode
 {
 
-	class ChannelList;
+class ChannelList;
 
-	class ChannelComponent : public Component
-	{
-	public:
-		
-		/** Constructor */
-		ChannelComponent (ChannelList* cl,
-							int ch,
-							int gainIndex,
-							String name,
-							Array<float> gains,
-							ContinuousChannel::Type type);
+class ChannelComponent : public Component
+{
+public:
+    /** Constructor */
+    ChannelComponent (ChannelList* cl,
+                      int ch,
+                      int gainIndex,
+                      String name,
+                      Array<float> gains,
+                      ContinuousChannel::Type type);
 
-		/** Destructor */
-		~ChannelComponent() {}
+    /** Destructor */
+    ~ChannelComponent() {}
 
-		/** Called when look and feel is updated*/
-		void lookAndFeelChanged() override;
+    /** Called when look and feel is updated*/
+    void lookAndFeelChanged() override;
 
-		/** Updates impedance values for this channel */
-		void setImpedanceValues (float mag, float phase);
+    /** Updates impedance values for this channel */
+    void setImpedanceValues (float mag, float phase);
 
-		/** Sets layout */
-		void resized() override;
+    /** Sets layout */
+    void resized() override;
 
-		/** Holds channel type */
-		const ContinuousChannel::Type type;
+    /** Holds channel type */
+    const ContinuousChannel::Type type;
 
-	private:
-		
-		Array<float> gains;
-		ChannelList* channelList;
+private:
+    Array<float> gains;
+    ChannelList* channelList;
 
-		std::unique_ptr<Label> staticLabel, nameLabel, impedanceLabel;
+    std::unique_ptr<Label> staticLabel, nameLabel, impedanceLabel;
 
-		int channel;
-		String name;
-		int gainIndex;
-		int userDefinedData;
-		bool isEnabled;
+    int channel;
+    String name;
+    int gainIndex;
+    int userDefinedData;
+    bool isEnabled;
 
-		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChannelComponent);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ChannelComponent);
+};
 
-	};
-
-}
-#endif  // __RHD2000EDITOR_H_2AD3C591__
+} // namespace RhythmNode
+#endif // __RHD2000EDITOR_H_2AD3C591__
